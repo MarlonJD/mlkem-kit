@@ -1,0 +1,6 @@
+# ninja log v5
+0	124	1777863035215367152	CMakeFiles/mlkemnative.dir/mlkem_native_android.c.o	b8bbda601135984
+0	1283	1777863036372907167	CMakeFiles/mlkemnative.dir/mlkem-native/mlkem/mlkem_native.c.o	19a91e0cd0313c0c
+1283	1336	1777863036426855807	/Users/marlonjd/Developer/mobile/publish/MLKEMNativeAndroid/mlkemnative/build/intermediates/cxx/RelWithDebInfo/395d6l4z/obj/arm64-v8a/libmlkemnative.so	5c3eec38d7d82586
+9	488	1777864373471349167	CMakeFiles/mlkemnative.dir/mlkem_native_android.c.o	b8bbda601135984
+488	746	1777864373729571039	/Users/marlonjd/Developer/mobile/publish/MLKEMNativeAndroid/mlkemnative/build/intermediates/cxx/RelWithDebInfo/395d6l4z/obj/arm64-v8a/libmlkemnative.so	5c3eec38d7d82586

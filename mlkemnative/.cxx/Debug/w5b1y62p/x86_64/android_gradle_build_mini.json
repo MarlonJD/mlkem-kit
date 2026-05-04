@@ -1,0 +1,27 @@
+{
+  "buildFiles": [
+    "/Users/marlonjd/Developer/mobile/publish/MLKEMNativeAndroid/mlkemnative/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/marlonjd/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/marlonjd/Developer/mobile/publish/MLKEMNativeAndroid/mlkemnative/.cxx/Debug/w5b1y62p/x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/marlonjd/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/marlonjd/Developer/mobile/publish/MLKEMNativeAndroid/mlkemnative/.cxx/Debug/w5b1y62p/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "mlkemnative::@6890427a1f51a3e7e1df": {
+      "artifactName": "mlkemnative",
+      "abi": "x86_64",
+      "output": "/Users/marlonjd/Developer/mobile/publish/MLKEMNativeAndroid/mlkemnative/build/intermediates/cxx/Debug/w5b1y62p/obj/x86_64/libmlkemnative.so",
+      "runtimeFiles": []
+    }
+  }
+}

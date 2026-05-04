@@ -1,0 +1,4 @@
+[submodule "mlkemnative/src/main/cpp/mlkem-native"]
+	path = mlkemnative/src/main/cpp/mlkem-native
+	url = https://github.com/pq-code-package/mlkem-native.git
+

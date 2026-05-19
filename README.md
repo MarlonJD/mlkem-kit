@@ -1,10 +1,9 @@
 # MLKEMNativeSwift
 
-Swift Package Manager wrapper for ML-KEM-768 on Apple platforms.
+Swift Package Manager implementation of ML-KEM-768 on Apple platforms.
 
-`MLKEMNativeSwift` wraps the portable C backend from
-[`mlkem-native`](https://github.com/pq-code-package/mlkem-native) and exposes a
-small Swift API shaped similarly to CryptoKit's ML-KEM API.
+`MLKEMNativeSwift` provides a pure Swift ML-KEM-768 backend and exposes a small
+Swift API shaped similarly to CryptoKit's ML-KEM API.
 
 ## Why This Package Exists
 
@@ -14,21 +13,19 @@ iOS 18 can use ML-KEM-768 without waiting to require iOS 26.
 
 The goal is intentionally small: provide a Swift Package Manager dependency
 with CryptoKit-shaped key generation, encapsulation, decapsulation, and stable
-raw key representations, while keeping the ML-KEM core in the upstream
-`mlkem-native` C implementation instead of rewriting the algorithm in Swift.
+raw key representations, without requiring C FFI or Apple's iOS 26-only
+CryptoKit ML-KEM implementation.
 
 ## Status
 
 - Package version target: `0.2.0`
-- Upstream C core: `Vendor/mlkem-native` git submodule
-- Pinned upstream release: `v1.1.0`
-- Pinned upstream commit: `d2cae2be522a67bfae26100fdb520576f1b2ef90`
-- Backend: portable C only. Native assembly backends are not compiled in this
-  package yet.
+- Backend: pure Swift ML-KEM-768, including Keccak/SHA3/SHAKE and the ML-KEM
+  polynomial arithmetic.
+- C FFI: none.
 - Platform targets: iOS 13.0+, macOS 10.15+
 
 This package does not claim FIPS validation. It uses an implementation of the
-FIPS 203 ML-KEM algorithm from `mlkem-native`.
+FIPS 203 ML-KEM algorithm.
 
 ## Installation
 
@@ -53,21 +50,12 @@ Then add `MLKEMNativeSwift` to your target dependencies:
 
 ## Checkout
 
-For development, clone with submodules:
+For development, clone the repository:
 
 ```bash
-git clone --recurse-submodules https://github.com/MarlonJD/MLKEMNativeSwift.git
+git clone https://github.com/MarlonJD/MLKEMNativeSwift.git
 cd MLKEMNativeSwift
 ```
-
-For an existing checkout:
-
-```bash
-git submodule update --init --recursive
-```
-
-SwiftPM resolves submodules for dependency checkouts, but a top-level
-development checkout still needs the normal Git submodule initialization step.
 
 ## Usage
 
@@ -180,10 +168,8 @@ deterministic ML-KEM-768 vector using fixed keygen and encapsulation seeds.
 
 ## License
 
-`MLKEMNativeSwift` wrapper code is released under the MIT license. See
+`MLKEMNativeSwift` code is released under the MIT license. See
 [`LICENSE`](LICENSE).
 
-The vendored upstream `mlkem-native` submodule is licensed separately under the
-terms documented in `Vendor/mlkem-native/LICENSE`; at the pinned release, its
-core source is available under Apache-2.0 OR ISC OR MIT. See
-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+The Swift ML-KEM core was written against FIPS 203 and cross-checked against
+deterministic ML-KEM-768 vectors. No third-party source is vendored or linked.

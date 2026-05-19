@@ -1,4 +1,0 @@
-module CMLKEMNativeSwift {
-    header "CMLKEMNativeSwift.h"
-    export *
-}

@@ -16,18 +16,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "CMLKEMNativeSwift",
-            path: "Sources/CMLKEMNativeSwift",
-            publicHeadersPath: "include",
-            cSettings: [
-                .headerSearchPath("../../Vendor/mlkem-native/mlkem"),
-                .define("MLK_CONFIG_PARAMETER_SET", to: "768"),
-                .define("MLK_CONFIG_NO_RANDOMIZED_API")
-            ]
-        ),
-        .target(
-            name: "MLKEMNativeSwift",
-            dependencies: ["CMLKEMNativeSwift"]
+            name: "MLKEMNativeSwift"
         ),
         .testTarget(
             name: "MLKEMNativeSwiftTests",

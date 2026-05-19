@@ -36,6 +36,30 @@ struct MLKEMNativeSwiftTests {
         #expect(sharedSecretData(try privateKey.decapsulate(encapsulated.ciphertext)) == (try Data(hex: TestVector.sharedSecret)))
     }
 
+    @Test("Reference all-zero/all-one vector matches mlkem-native")
+    func referenceAllZeroAllOneVector() throws {
+        let seed = Data(repeating: 0, count: MLKEMNative768.keypairSeedBytes)
+        var coins = Data(repeating: 0, count: MLKEMNative768.encapsulationSeedBytes)
+        coins[0] = 1
+        let privateKey = try MLKEMNative768.PrivateKey(seed: seed)
+        let encapsulated = try privateKey.publicKey.encapsulate(seed: coins)
+
+        #expect(sharedSecretData(encapsulated.sharedSecret) == (try Data(hex: TestVector.zeroOneSharedSecret)))
+        #expect(sharedSecretData(try privateKey.decapsulate(encapsulated.ciphertext)) == (try Data(hex: TestVector.zeroOneSharedSecret)))
+    }
+
+    @Test("Tampered ciphertext decapsulates to fallback secret")
+    func tamperedCiphertextUsesFallbackSecret() throws {
+        let privateKey = try MLKEMNative768.PrivateKey.generate()
+        let encapsulated = try privateKey.publicKey.encapsulate()
+        var tampered = encapsulated.ciphertext
+        tampered[0] ^= 0x01
+
+        let opened = try privateKey.decapsulate(tampered)
+
+        #expect(sharedSecretData(opened) != sharedSecretData(encapsulated.sharedSecret))
+    }
+
     @Test("Incremental Braid pieces match full deterministic encapsulation")
     func incrementalBraidPiecesMatchFullEncapsulation() throws {
         let seed = try Data(hex: TestVector.seed)
@@ -187,6 +211,10 @@ private enum TestVector {
 
     static let sharedSecret = """
     9cddd089ffe70e3996e76f7c8d06746df34d07e8657bc0fcf2bb0e1c3084aea1
+    """
+
+    static let zeroOneSharedSecret = """
+    8521abc814c767704fa625d93595d00379a8b370352ca4bab3a68246630db08b
     """
 }
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+- Replaces the vendored `mlkem-native` C backend with a pure Swift ML-KEM-768
+  implementation.
+- Removes the C target, FFI wrapper, git submodule metadata, vendored upstream
+  sources, and third-party notice file.
+- Keeps the existing public API surface, including incremental ML-KEM Braid
+  operations.
+- Adds reference-vector and tampered-ciphertext tests for the pure Swift backend.
+
 ## 0.2.0
 
 - Adds incremental ML-KEM-768 operations for ML-KEM Braid / Triple Ratchet

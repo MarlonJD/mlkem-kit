@@ -2,6 +2,11 @@
 
 Pure Kotlin Android library for ML-KEM-768.
 
+This package now lives under the `mlkem-kit` monorepo at `platforms/android`.
+`MarlonJD/MLKEMNativeAndroid` and the existing Maven coordinates may remain
+available as Android compatibility or distribution surfaces, but new
+protocol-level changes should land in `MarlonJD/mlkem-kit` first.
+
 ```kotlin
 implementation("io.github.marlonjd:mlkem-native-android:0.2.0")
 ```

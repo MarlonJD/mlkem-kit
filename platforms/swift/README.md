@@ -2,6 +2,11 @@
 
 Swift Package Manager implementation of ML-KEM-768 on Apple platforms.
 
+This package now lives under the `mlkem-kit` monorepo at `platforms/swift`.
+`MarlonJD/MLKEMNativeSwift` may remain available as a SwiftPM compatibility or
+distribution repository, but new protocol-level changes should land in
+`MarlonJD/mlkem-kit` first.
+
 `MLKEMNativeSwift` provides a pure Swift ML-KEM-768 backend and exposes a small
 Swift API shaped similarly to CryptoKit's ML-KEM API.
 

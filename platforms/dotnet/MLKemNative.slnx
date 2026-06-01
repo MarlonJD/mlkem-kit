@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MLKemNative/MLKemNative.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MLKemNative.Tests/MLKemNative.Tests.csproj" />
+  </Folder>
+</Solution>

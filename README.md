@@ -1,8 +1,8 @@
 # mlkem-kit
 
-Pure Swift and pure Kotlin ML-KEM-768 implementation monorepo.
+Pure Swift, pure Kotlin, and pure managed C# ML-KEM-768 implementation monorepo.
 
-`mlkem-kit` is the source of truth for the Apple and Android ML-KEM
+`mlkem-kit` is the source of truth for the Apple, Android, and .NET ML-KEM
 implementations used by the E2EE stack. Platform package names and distribution
 repositories may remain ecosystem-specific for compatibility, but protocol
 changes, shared vectors, and implementation drift fixes should land here first.
@@ -33,6 +33,8 @@ E2EE client/session layer should consume both `SecureEnvelopeKit` and
 - `platforms/android`: Gradle/Android package for Kotlin/JVM and Android. The
   Maven artifact is currently `mlkem-native-android` for ecosystem
   compatibility.
+- `platforms/dotnet`: .NET package for pure managed C# consumers. The NuGet
+  package id is currently `MLKemNative`.
 
 The platform implementations keep their ecosystem-native package structure and
 release tooling. Shared vectors, benchmark formats, and protocol notes should
@@ -81,6 +83,7 @@ with measured performance and bounded runtime behavior.
 ```sh
 cd platforms/swift && swift test
 cd platforms/android && ./gradlew test
+cd platforms/dotnet && dotnet test
 ```
 
 ## License

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>MLKemNative</RootNamespace>
+    <AssemblyName>MLKemNative</AssemblyName>
+    <PackageId>MLKemNative</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Burak Karahan</Authors>
+    <Description>Pure managed C# ML-KEM-768 (FIPS 203) key encapsulation, with the Keccak permutation (SHA3-256/512, SHAKE128/256) implemented in managed code. No OS-native KEM or SHA-3 dependency. Matches the pure Swift and pure Kotlin mlkem-kit implementations byte-for-byte on the shared deterministic vectors.</Description>
+    <PackageProjectUrl>https://github.com/MarlonJD/mlkem-kit</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MarlonJD/mlkem-kit.git</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>ml-kem;mlkem;mlkem768;kyber;post-quantum;kem;fips203;crypto</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="MLKemNative.Tests" />
+  </ItemGroup>
+
+  <!-- Pack the platform README so NuGet metadata is complete without publishing. -->
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

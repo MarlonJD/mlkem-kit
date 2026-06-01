@@ -1,0 +1,241 @@
+import CryptoKit
+import Foundation
+import Testing
+@testable import MLKEMNativeSwift
+
+@Suite("MLKEMNativeSwift ML-KEM-768")
+struct MLKEMNativeSwiftTests {
+    @Test("Generate, load representation, and encapsulate/decapsulate roundtrip")
+    func roundTrip() throws {
+        let privateKey = try MLKEMNative768.PrivateKey.generate()
+        let loaded = try MLKEMNative768.PrivateKey(representation: privateKey.representation)
+
+        #expect(privateKey.representation.count == 5 + 64 + 1184)
+        #expect(loaded.representation == privateKey.representation)
+        #expect(loaded.publicKey.rawRepresentation == privateKey.publicKey.rawRepresentation)
+
+        let encapsulated = try loaded.publicKey.encapsulate()
+        let opened = try loaded.decapsulate(encapsulated.ciphertext)
+
+        #expect(encapsulated.ciphertext.count == 1088)
+        #expect(sharedSecretData(encapsulated.sharedSecret) == sharedSecretData(opened))
+    }
+
+    @Test("Deterministic vector path is stable")
+    func deterministicVector() throws {
+        let seed = try Data(hex: TestVector.seed)
+        let coins = try Data(hex: TestVector.coins)
+        let privateKey = try MLKEMNative768.PrivateKey(seed: seed)
+
+        let encapsulated = try privateKey.publicKey.encapsulate(seed: coins)
+
+        #expect(privateKey.seedRepresentation == seed)
+        #expect(privateKey.publicKey.rawRepresentation == (try Data(hex: TestVector.publicKey)))
+        #expect(encapsulated.ciphertext == (try Data(hex: TestVector.ciphertext)))
+        #expect(sharedSecretData(encapsulated.sharedSecret) == (try Data(hex: TestVector.sharedSecret)))
+        #expect(sharedSecretData(try privateKey.decapsulate(encapsulated.ciphertext)) == (try Data(hex: TestVector.sharedSecret)))
+    }
+
+    @Test("Reference all-zero/all-one vector matches mlkem-native")
+    func referenceAllZeroAllOneVector() throws {
+        let seed = Data(repeating: 0, count: MLKEMNative768.keypairSeedBytes)
+        var coins = Data(repeating: 0, count: MLKEMNative768.encapsulationSeedBytes)
+        coins[0] = 1
+        let privateKey = try MLKEMNative768.PrivateKey(seed: seed)
+        let encapsulated = try privateKey.publicKey.encapsulate(seed: coins)
+
+        #expect(sharedSecretData(encapsulated.sharedSecret) == (try Data(hex: TestVector.zeroOneSharedSecret)))
+        #expect(sharedSecretData(try privateKey.decapsulate(encapsulated.ciphertext)) == (try Data(hex: TestVector.zeroOneSharedSecret)))
+    }
+
+    @Test("Tampered ciphertext decapsulates to fallback secret")
+    func tamperedCiphertextUsesFallbackSecret() throws {
+        let privateKey = try MLKEMNative768.PrivateKey.generate()
+        let encapsulated = try privateKey.publicKey.encapsulate()
+        var tampered = encapsulated.ciphertext
+        tampered[0] ^= 0x01
+
+        let opened = try privateKey.decapsulate(tampered)
+
+        #expect(sharedSecretData(opened) != sharedSecretData(encapsulated.sharedSecret))
+    }
+
+    @Test("Incremental Braid pieces match full deterministic encapsulation")
+    func incrementalBraidPiecesMatchFullEncapsulation() throws {
+        let seed = try Data(hex: TestVector.seed)
+        let coins = try Data(hex: TestVector.coins)
+        let privateKey = try MLKEMNative768.PrivateKey(seed: seed)
+        let full = try privateKey.publicKey.encapsulate(seed: coins)
+
+        let incrementalKey = try privateKey.publicKey.incrementalRepresentation()
+        let reconstructed = try MLKEMNative768.IncrementalPublicKey(
+            header: incrementalKey.header,
+            encapsulationKeyVector: incrementalKey.encapsulationKeyVector
+        )
+        let part1 = try MLKEMNative768.encapsulatePart1(header: incrementalKey.header, seed: coins)
+        let part2 = try MLKEMNative768.encapsulatePart2(
+            encapsulationSecret: part1.encapsulationSecret,
+            header: incrementalKey.header,
+            encapsulationKeyVector: incrementalKey.encapsulationKeyVector
+        )
+
+        #expect(incrementalKey.header.count == 64)
+        #expect(incrementalKey.encapsulationKeyVector.count == 1152)
+        #expect(reconstructed.publicKey.rawRepresentation == privateKey.publicKey.rawRepresentation)
+        #expect(part1.ciphertextPart1.count == 960)
+        #expect(part2.count == 128)
+        #expect(part1.ciphertextPart1 + part2 == full.ciphertext)
+        #expect(sharedSecretData(part1.sharedSecret) == sharedSecretData(full.sharedSecret))
+        #expect(sharedSecretData(try privateKey.decapsulate(ciphertextPart1: part1.ciphertextPart1, ciphertextPart2: part2)) == sharedSecretData(full.sharedSecret))
+    }
+
+    @Test("Invalid public key is rejected")
+    func invalidPublicKey() {
+        #expect(throws: MLKEMError.invalidPublicKey) {
+            _ = try MLKEMNative768.PublicKey(rawRepresentation: Data(repeating: 0xff, count: 1184))
+        }
+    }
+
+    @Test("Invalid secret representation is rejected")
+    func invalidSecretRepresentation() throws {
+        #expect(throws: MLKEMError.invalidPrivateKeyRepresentation) {
+            _ = try MLKEMNative768.PrivateKey(representation: Data(repeating: 0, count: 64))
+        }
+
+        var representation = try MLKEMNative768.PrivateKey.generate().representation
+        representation[representation.count - 1] ^= 0x01
+        #expect(throws: MLKEMError.invalidPrivateKeyRepresentation) {
+            _ = try MLKEMNative768.PrivateKey(representation: representation)
+        }
+    }
+
+    @Test("Invalid ciphertext is rejected")
+    func invalidCiphertext() throws {
+        let privateKey = try MLKEMNative768.PrivateKey.generate()
+        #expect(throws: MLKEMError.invalidCiphertext) {
+            _ = try privateKey.decapsulate(Data(repeating: 0, count: 1087))
+        }
+    }
+
+    private func sharedSecretData(_ key: SymmetricKey) -> Data {
+        key.withUnsafeBytes { Data($0) }
+    }
+}
+
+private enum TestVector {
+    static let seed = """
+    000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
+    202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f
+    """
+
+    static let coins = """
+    404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f
+    """
+
+    static let publicKey = """
+    298aa10d423c8dda069d02bc59e6cdf03a096b8b3da4cab9b80ca4a14907672c
+    cef1ec4faf234a0bc5b7e9d473f2b3133b3b26a1d175cb67a7805919699c02f7
+    6531b99c5f89180704bb4ca4535c5b8972679c660a07c5e514b87009c862eb8f
+    5157695efb3fc40a9def6b81c1cc02a249ae4f094ad0d9bd3485c1c1c6808052
+    0a7c8c632032cee738154e5c5176c07da56024776a430fe76eacf665a3f7b832
+    102215bc82f10939c8355704336a8fac1d81e4bb0485aa5d7c74d6b59bbe5c5e
+    972a0d8bac411b55b5d5557cd680a1a8f71b4eb86bc48c9a0509731a54bd9d72
+    90b27963e4372dc9b199cfdcac0b01acd28a62395112e4c43648d622c48c8234
+    d01440e8cc376c927f23a5afc9ac0474c662274e424525c8552ece3b3fe26516
+    de901bc7d515bde89558e626c95c80b93342f8010004f39e6c6c94871c5e344c
+    ab3966c835f9a96a59afd31c40286b38b1c1a78470bab947518934453ce86736
+    a919f1f5a6d510a86f5454fc3980cb5c765bd2bd5f7b36b1410d6635c8ceb47c
+    4dda0d76a28eac939c71c3024804866c71626658442163c2c22117e50acefce6
+    378a985652302a4ef0c2ce0cc716b7796e2b6b2e3777dfa1ac3da259a31b5a9b
+    530f8cb638a81a62ac301849abaf95a7301bda30068909bfdb7e67dbccbb38a5
+    551a25b1a3a0f685748ad5753d8880f0016c627486166384c5571fe236590036
+    4d038311e2d875db366686932b5ec602430a369e87a6ef5c338786657825bd4c
+    057aceb923eb0935e6905e63b4ced7f80857a773dd64b150d26612ea9ac12052
+    db2017bf1843ccb4b3281b690dc728adfa85c00281b8e3c09287335f856b4fc2
+    892f69a2f57921ada01914c40988662d57769662a786351b9b66493dab79594d
+    986de2100d65ba0ff4ea58b81538d24a4435a258fac25404aa7f41f658b13850
+    65e158dcb60115732720f40459aaac15e406953a90ac52997d1ccd070060efc6
+    5db9e653354467fad56ec713c86e7540c423acf2669f52fa6f4ac6888d871ef3
+    e847c029a8aafbb92e17b24aa079b1f419ba6175b442afb11909d4a56b70a033
+    5b28739218aa7c9348e2c3c2f3eb3d15a41e6417c0dd94bfeb21419b311a7bb1
+    3a180bbe833218a9a6b17447cc85f225859587a73077049acbcfd44d0f025438
+    e15d1538270d586e1bf83192a9459cf63c0e972f85297679831ecf121509851c
+    b8340f6f107b0fa1a0efd1b36a8189bc085c4f5cb784e553f41b918f80397ce1
+    956f785bee377ca9aa8be6998ada30c26b7c3d8c6b55254cc96203b20c42aee0
+    ac4e1ebb408e49a9e3f879d0ab0785eb7025425d1305a2299c015e120d163b0e
+    19494ce57253d0246d182745cb8197ab7438b3c1bb7972bec5a306eba3567855
+    c014699fef65ae54c770a0d85c18400cf642aedc660777ba4b138502bd5a7812
+    f621f84a48296b98dd4322b6f15828b8a8f0e00a8ba44a53c3a8b143571b0740
+    abd567daf1cde9c79c204b6d5e259d1766a31bbbcb4e6a05cf4502176b301c1c
+    2f41247750157bcec85e809b30a4d60d7747cdd0f5b99aa8c826987517793aaa
+    8080a0b124a8558df72bbe37b75f4edbb6be8216d6c633fb2b2280e25113d869
+    5e43481c3eeb397eb192505229b67a201ea893c3e2cb32da8bc342fa4dea0578
+    """
+
+    static let ciphertext = """
+    695a60d9c79f08343ed9ff5802582063c2ca3a648e543d924affbb39ef4de656
+    591f0d7689e6626be7ea7fedaf134e2c27c6797c73a5edaf16808f141c8afcf3
+    1614e8ab665379573e4d0a2037cbf776048167ba53576001a2596402cf24b5d4
+    5362bc893ceaef3599f76b10812e626002e66db5c5b0f2b9a7080e32db68dcc8
+    d04c24f8461a58bb7e47efe670d740ad8af9820033845ef5f880f26f0e00adb2
+    abef876f5270477ebbb02de6787ce72ca8785fb181f46c3ff7ae3787c25c68cc
+    ceefb3551875b9d77c4d439b6050eb382aacf9e744227e8c46e0a9a55838ea70
+    34f5b4bcb61f1023a80186e795f4b3d8ae93988994224fa2d83e21711670da01
+    e2b3e272f81616c0bc88cc46f641d16e0d0c0924cf4a4a5c1a9128c226d4918a
+    a39bef94199dfffa33876ef0bfa0d9560d25f5ba08068d5271f32d2f9d88bcf5
+    3c7dcf811a8d5efe617f5e05700d3478d3cb7932528d1bceb240198a4cf8752c
+    aea3d387f00759a1356b7a5bf1838d26c3573e92e69f0f57c06e8c25459eb83e
+    12cdd75f541a81ce710eafce2984783f30e37b327ff93b72297c6cd8c78c185a
+    d53864952069d7d6c3bc633ae5e1a5925855df0b7e714bbde245f68822e0950c
+    23c96d6111753a6ed0c46cce437f53b6bb708c1a3e25979733198d9879e3237e
+    769471f922e579f37cfd641d29bdcfdbaa81edae09aeb046366e0376d04282d1
+    7778a8d54774e8c9be3c822b1e90cd8895abc1db8951b7687f63fee50ec43faf
+    23730b15189e7c982b22d896a972da3c2ee529bb5fe63630c9c2ddfb9d1e4263
+    a3d49af2832053d97efa2bd1782f25d7b864d6fb3708bfb9d4bc6c2cc6458d4f
+    1459995db387e8b503825a4496c735252aa630a1bcaa7a2674727396dcaf6703
+    0b53473951651dc26c22476bfd11d33206af0ff035ed035e34716c905e8ddf04
+    3a4cdae145238d8f612dbcb75e879653bb9e2657dab58b944ff34f977fe15ce9
+    07f6814a5f92338774e6f2ab5257d24917decdd158c6d4594189f42a9b7fa915
+    9a8af6aa825ba904654e08c894901298ffb27239ddea8283dd45b876036c0aec
+    f03583ba444529757444c857fff6e4f8ed48f8a180adea54979a678f16dc6ac8
+    edcc8e72ed08e96082f0ff4520dc635d4a846a3026fd86a48b1297e0cdfc0600
+    8793e783bde1c3fc6a71871e66b1feb560495817aabbdc59f0149f3e76add9b5
+    bd6ce34734de7593ed607efb84c6e732960c744c908a9cb8947375a55b55fa2f
+    0cd6742b75c10f65522d3844bed9b05bd441bbbea17cfbabdaef9847a0edd9c8
+    329a762e34e5396014d88b4d344f250aaddefd917bb2120d1169c79cb09f59ba
+    d21850752c1099fff98b71bcdaab76f7063323e78faa521cd243f74ddc7f7775
+    aa79960622e13580a6831e69bb7f2321d141d35da88317719078d4db319f3085
+    94c26836503f62362c40005022937c1298a928c040879661349a7b5362d0a75f
+    2893b97a2600d5337239a70a6b64a457e6dfd5c74d462e7e790bb9ef3cee1461
+    """
+
+    static let sharedSecret = """
+    9cddd089ffe70e3996e76f7c8d06746df34d07e8657bc0fcf2bb0e1c3084aea1
+    """
+
+    static let zeroOneSharedSecret = """
+    8521abc814c767704fa625d93595d00379a8b370352ca4bab3a68246630db08b
+    """
+}
+
+private extension Data {
+    init(hex: String) throws {
+        let clean = hex.filter { !$0.isWhitespace }
+        guard clean.count.isMultiple(of: 2) else {
+            throw MLKEMError.operationFailed
+        }
+
+        var bytes = [UInt8]()
+        bytes.reserveCapacity(clean.count / 2)
+        var index = clean.startIndex
+        while index < clean.endIndex {
+            let next = clean.index(index, offsetBy: 2)
+            guard let byte = UInt8(clean[index..<next], radix: 16) else {
+                throw MLKEMError.operationFailed
+            }
+            bytes.append(byte)
+            index = next
+        }
+        self = Data(bytes)
+    }
+}

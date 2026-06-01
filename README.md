@@ -1,6 +1,6 @@
 # MLKEMNativeAndroid
 
-Android AAR wrapper for ML-KEM-768 using [`mlkem-native`](https://github.com/pq-code-package/mlkem-native).
+Pure Kotlin Android library for ML-KEM-768.
 
 ```kotlin
 implementation("io.github.marlonjd:mlkem-native-android:0.2.0")
@@ -30,9 +30,9 @@ The private key representation is stable and cross-platform:
 KMLK1 || seed64 || publicKey1184
 ```
 
-`PrivateKey.fromRepresentation(...)` rebuilds the native secret key with deterministic `keypair_derand(seed64)` and verifies that the embedded public key matches.
+`PrivateKey.fromRepresentation(...)` rebuilds the secret key with deterministic ML-KEM-768 key generation from `seed64` and verifies that the embedded public key matches.
 
-All public `ByteArray` inputs are copied before storage or native use. All public `ByteArray` outputs return fresh copies.
+All public `ByteArray` inputs are copied before storage or cryptographic use. All public `ByteArray` outputs return fresh copies.
 
 ## Constants
 
@@ -80,19 +80,16 @@ ek_seed = final 32 bytes of publicKey
 
 `encapsulatePart1` produces the first 960 ciphertext bytes and the shared secret using only the header. `encapsulatePart2` completes the final 128 ciphertext bytes once the encapsulation key vector is available. For normal one-shot KEM usage, keep using `PublicKey.encapsulate()` and `PrivateKey.decapsulate(...)`.
 
-## Native Build
+## Build
 
-- Android only; no Kotlin Multiplatform.
+- Android/JVM only; no Kotlin Multiplatform.
 - `minSdk 23`, `compileSdk 36`.
-- AAR ABIs: `arm64-v8a`, `armeabi-v7a`, `x86_64`.
-- `mlkem-native` is pinned as a git submodule at `v1.1.0`.
-- The initial release uses the portable C backend only.
-- `MLK_CONFIG_PARAMETER_SET=768`.
-- `MLK_CONFIG_NO_RANDOMIZED_API` is enabled; Kotlin uses `SecureRandom` for key generation and encapsulation coins.
+- No JNI, CMake, NDK, C/C++, ABI split, or git submodule is required.
+- Kotlin uses `SecureRandom` for key generation and encapsulation coins.
 
 ## FIPS Notice
 
-This package does not claim FIPS validation. It wraps `mlkem-native` for ML-KEM-768 byte-level interoperability and Android packaging.
+This package does not claim FIPS validation, external cryptographic audit, or production security review. It provides a pure Kotlin ML-KEM-768 implementation for Swift/Android byte-level interoperability and Android packaging.
 
 ## Development
 

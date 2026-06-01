@@ -81,8 +81,7 @@ object MLKEMNative768 {
                 throw MLKEMException.InvalidCiphertext()
             }
 
-            return Native.decapsulate(ciphertext.copyOf(), secretKey)
-                ?: throw MLKEMException.OperationFailed("ML-KEM-768 decapsulation failed")
+            return PureKotlinMLKEM768.decapsulate(ciphertext.copyOf(), secretKey)
         }
 
         fun decapsulateParts(
@@ -138,7 +137,7 @@ object MLKEMNative768 {
                 publicKey: ByteArray,
                 secretKey: ByteArray,
             ): PrivateKey {
-                if (!Native.checkSecretKey(secretKey)) {
+                if (!PureKotlinMLKEM768.checkSecretKey(secretKey)) {
                     throw MLKEMException.OperationFailed("ML-KEM-768 secret key validation failed")
                 }
 
@@ -164,7 +163,7 @@ object MLKEMNative768 {
 
         init {
             if (rawRepresentationBytes.size != PUBLIC_KEY_BYTES ||
-                !Native.checkPublicKey(rawRepresentationBytes)
+                !PureKotlinMLKEM768.checkPublicKey(rawRepresentationBytes)
             ) {
                 throw MLKEMException.InvalidPublicKey()
             }
@@ -180,14 +179,8 @@ object MLKEMNative768 {
                 throw MLKEMException.OperationFailed("Invalid ML-KEM-768 encapsulation seed")
             }
 
-            val output = Native.encapsulateDerand(rawRepresentationBytes, coins.copyOf())
-                ?: throw MLKEMException.OperationFailed("ML-KEM-768 encapsulation failed")
-            val ciphertext = output.copyOfRange(0, CIPHERTEXT_BYTES)
-            val sharedSecret = output.copyOfRange(
-                CIPHERTEXT_BYTES,
-                CIPHERTEXT_BYTES + SHARED_SECRET_BYTES,
-            )
-            return Encapsulation(ciphertext, sharedSecret)
+            val output = PureKotlinMLKEM768.encapsulateDerand(rawRepresentationBytes, coins.copyOf())
+            return Encapsulation(output.ciphertext, output.sharedSecret)
         }
     }
 
@@ -337,16 +330,12 @@ object MLKEMNative768 {
             throw MLKEMException.OperationFailed("Invalid ML-KEM-768 encapsulation randomness")
         }
 
-        val output = Native.incrementalEncapsulatePart1(header.copyOf(), coins)
-            ?: throw MLKEMException.OperationFailed("ML-KEM-768 incremental encapsulation part1 failed")
-        val secretEnd = INCREMENTAL_ENCAPSULATION_SECRET_BYTES
-        val ciphertextEnd = secretEnd + CIPHERTEXT_PART1_BYTES
-        val sharedSecretEnd = ciphertextEnd + SHARED_SECRET_BYTES
+        val output = PureKotlinMLKEM768.encapsulatePart1Derand(header.copyOf(), coins)
 
         return IncrementalEncapsulationPart1(
-            encapsulationSecretBytes = output.copyOfRange(0, secretEnd),
-            ciphertextPart1Bytes = output.copyOfRange(secretEnd, ciphertextEnd),
-            sharedSecretBytes = output.copyOfRange(ciphertextEnd, sharedSecretEnd),
+            encapsulationSecretBytes = output.encapsulationSecret,
+            ciphertextPart1Bytes = output.ciphertextPart1,
+            sharedSecretBytes = output.sharedSecret,
         )
     }
 
@@ -360,8 +349,7 @@ object MLKEMNative768 {
         }
 
         val publicKey = publicKeyFromIncremental(header, encapsulationKeyVector)
-        return Native.incrementalEncapsulatePart2(encapsSecret.copyOf(), publicKey)
-            ?: throw MLKEMException.OperationFailed("ML-KEM-768 incremental encapsulation part2 failed")
+        return PureKotlinMLKEM768.encapsulatePart2(encapsSecret.copyOf(), publicKey)
     }
 
     fun decapsulateParts(
@@ -395,11 +383,8 @@ object MLKEMNative768 {
             throw MLKEMException.OperationFailed("Invalid ML-KEM-768 keypair seed")
         }
 
-        val output = Native.keypairDerand(seed)
-            ?: throw MLKEMException.OperationFailed("ML-KEM-768 keypair derivation failed")
-        val publicKey = output.copyOfRange(0, PUBLIC_KEY_BYTES)
-        val secretKey = output.copyOfRange(PUBLIC_KEY_BYTES, PUBLIC_KEY_BYTES + SECRET_KEY_BYTES)
-        return NativeKeypair(publicKey, secretKey)
+        val output = PureKotlinMLKEM768.keypairDerand(seed)
+        return NativeKeypair(output.publicKey, output.secretKey)
     }
 
     private fun randomBytes(size: Int): ByteArray {
@@ -423,29 +408,11 @@ object MLKEMNative768 {
     }
 
     private fun sha3256(input: ByteArray): ByteArray =
-        Native.sha3256(input)
-            ?: throw MLKEMException.OperationFailed("ML-KEM-768 SHA3-256 failed")
+        PureKotlinMLKEM768.sha3256(input)
 
     private data class NativeKeypair(
         val publicKey: ByteArray,
         val secretKey: ByteArray,
     )
 
-    private object Native {
-        init {
-            System.loadLibrary("mlkemnative")
-        }
-
-        external fun keypairDerand(seed: ByteArray): ByteArray?
-        external fun encapsulateDerand(publicKey: ByteArray, coins: ByteArray): ByteArray?
-        external fun decapsulate(ciphertext: ByteArray, secretKey: ByteArray): ByteArray?
-        external fun checkPublicKey(publicKey: ByteArray): Boolean
-        external fun checkSecretKey(secretKey: ByteArray): Boolean
-        external fun sha3256(input: ByteArray): ByteArray?
-        external fun incrementalEncapsulatePart1(header: ByteArray, coins: ByteArray): ByteArray?
-        external fun incrementalEncapsulatePart2(
-            encapsulationSecret: ByteArray,
-            publicKey: ByteArray,
-        ): ByteArray?
-    }
 }

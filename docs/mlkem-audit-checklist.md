@@ -197,7 +197,9 @@ fallback by itself.
 - Reviewed at: not recorded
 - Evidence: review intake packet in `docs/mlkem-external-review-packet.md`;
   supporting non-external technical findings in
-  `docs/mlkem-codex-technical-review-findings.md`; status remains open until
+  `docs/mlkem-codex-technical-review-findings.md`; internal AI review note in
+  `docs/mlkem-internal-ai-review.md`; EMSI DM production integration decision in
+  `docs/mlkem-emsi-dm-production-readiness.md`. Status remains open until
   independent reviewer findings and acceptance are recorded.
 
 ## Side-Channel Review Prompts
@@ -218,4 +220,10 @@ fallback by itself.
 
 An audited fallback is production-selectable only when every reviewer-controlled
 row above is closed with real reviewer evidence and production approval is
-explicitly in scope. Until then, production provider policy must fail closed.
+explicitly in scope for fallback use. Until then, production provider policy
+must fail closed for language-native fallback selection.
+
+EMSI DM production integration is approved only for official/native provider
+selection with language-native fallback blocked. This integration decision does
+not close fallback audit gates and does not approve pure Swift, pure Kotlin, or
+managed C# fallback production use.

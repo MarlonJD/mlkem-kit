@@ -2,8 +2,7 @@
 
 Date: 2026-06-05
 Scope: Swift, Kotlin, and managed C# ML-KEM-768 confidentiality fallbacks
-Evidence commit: 625750bb0f53e922d2b8f799e2abed4ffcd1a767 plus
-package-local dirty-worktree hardening evidence observed on 2026-06-05
+Evidence commit: 2fe24a4ae0df2b6f55de564583c8e268bb1d209d
 
 This is a source-level side-channel assessment for language-native fallback
 implementations. It is not external crypto-review acceptance, not a FIPS
@@ -100,8 +99,7 @@ guardrail only and is not formal constant-time proof.
 - Status: open
 - Reviewer: not assigned
 - Reviewed at: not recorded
-- Evidence commit: 625750bb0f53e922d2b8f799e2abed4ffcd1a767 plus
-  package-local dirty-worktree hardening evidence observed on 2026-06-05
+- Evidence commit: 2fe24a4ae0df2b6f55de564583c8e268bb1d209d
 
 Production fallback must remain fail-closed until this review is accepted by a
 named reviewer and the external crypto review gate is closed.

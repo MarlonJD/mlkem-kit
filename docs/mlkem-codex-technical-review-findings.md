@@ -3,8 +3,7 @@
 Date: 2026-06-05
 Scope: `packages/mlkem-kit` Swift, Kotlin, and managed C# ML-KEM-768
 confidentiality fallbacks
-Reviewed source revision: `625750bb0f53e922d2b8f799e2abed4ffcd1a767` plus
-package-local dirty-worktree evidence observed on 2026-06-05
+Reviewed source revision: `2fe24a4ae0df2b6f55de564583c8e268bb1d209d`
 
 This is a Codex technical review artifact. It is not an external independent
 crypto-review sign-off, not FIPS validation, not formal constant-time
@@ -18,6 +17,8 @@ close the `external-crypto-review` gate in `readiness/mlkem-audit-status.json`.
 - `docs/mlkem-side-channel-review.md`
 - `docs/mlkem-secret-lifetime-review.md`
 - `docs/mlkem-reviewer-handoff.md`
+- `docs/mlkem-internal-ai-review.md`
+- `docs/mlkem-emsi-dm-production-readiness.md`
 - `docs/mlkem-audit-checklist.md`
 - `readiness/mlkem-audit-status.json`
 - `tools/check_secret_logging.py`
@@ -50,7 +51,9 @@ Recommended gate handling:
   managed secret-lifetime residual risk and caller lifecycle controls.
 - Keep `external-crypto-review` open until an independent external reviewer
   records findings and an acceptance decision.
-- Keep `productionFallbackStatus` as `fail-closed`.
+- Keep `productionFallbackStatus` as `fail-closed` for language-native
+  fallback approval. EMSI DM production integration may use the package only via
+  official/native provider selection with fallback blocked.
 
 ## Findings
 
@@ -185,10 +188,11 @@ Recommended gate handling:
 - Evidence: Swift, Kotlin, and C# provider policies require explicit production
   fallback allowance and closed audit gates before selecting language-native
   fallbacks for production. `readiness/mlkem-audit-status.json` remains
-  `productionFallbackStatus: "fail-closed"`.
+  `productionFallbackStatus: "fail-closed"`. EMSI DM production integration is
+  approved only for official/native provider selection with fallback blocked.
 - Residual risk: documentation or JSON updates could accidentally overstate
   readiness unless verification continues to require real reviewer evidence.
-- Gate impact: preserve fail-closed status.
+- Gate impact: preserve fail-closed fallback status.
 
 ## Hardening Options To Reduce Residual Risk
 
@@ -211,5 +215,5 @@ Recommended gate handling:
 The current evidence is strong enough to hand to a real reviewer, and the most
 truthful technical disposition is acceptance with documented residual risk for
 managed runtime constant-time limits and secret lifetime. It is not sufficient
-to close the external independent crypto-review gate or approve production
-fallback without a real named external reviewer decision.
+to close the external independent crypto-review gate or approve language-native
+production fallback without a real named external reviewer decision.

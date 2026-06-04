@@ -3,7 +3,7 @@
 Date: 2026-06-05
 Decision owner: mlkem-kit maintainer
 Scope: `packages/mlkem-kit` ML-KEM-768 fallback benchmark readiness
-Reviewed source revision: 625750bb0f53e922d2b8f799e2abed4ffcd1a767 plus package-local dirty worktree evidence captured on 2026-06-05
+Reviewed source revision: 2fe24a4ae0df2b6f55de564583c8e268bb1d209d
 
 ## Decision
 

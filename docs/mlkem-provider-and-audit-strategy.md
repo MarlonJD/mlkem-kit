@@ -58,6 +58,20 @@ are internally consistent. External crypto reviewers should use
 `docs/mlkem-external-review-packet.md`; this packet is public-safe and limited
 to ML-KEM confidentiality fallback readiness.
 
+## EMSI DM Production Integration
+
+EMSI DM production builds may integrate `mlkem-kit` only through the official
+provider path described above. Production policy defaults keep
+`allowsFallbackInProduction = false`; release checks should treat any
+language-native fallback selection as a blocking failure unless a later audit
+status explicitly approves fallback production use.
+
+This approves the package as a production provider-selection layer for EMSI DM
+when official/native providers are available and complete. It does not approve
+pure Swift, pure Kotlin, or managed C# fallbacks for production use, and it does
+not claim FIPS validation, formal constant-time behavior, or external crypto
+review acceptance.
+
 ## Current Status
 
 The Swift, Kotlin, and managed C# fallbacks have vector tests and policy tests,

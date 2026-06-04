@@ -19,15 +19,23 @@ behavior, and does not record audit acceptance.
   not approve production fallback.
 - Non-device automation was refreshed on 2026-06-05 local time and passed, but
   automation does not close reviewer gates.
-- The current package state includes local dirty-worktree evidence. Reviewer
-  closure still requires a named reviewer decision against an exact reviewed
-  source revision; these local updates are not reviewer acceptance.
+- The reviewed source baseline is
+  `2fe24a4ae0df2b6f55de564583c8e268bb1d209d`. Reviewer closure still requires a
+  named reviewer decision against an exact reviewed source revision; the
+  committed package evidence is not reviewer acceptance.
 - Android emulator output and Windows GitHub Actions output are the planned
   Android/Windows proxy benchmark path for this non-device closure. They are
   not physical release-device evidence and do not approve production fallback.
 - `docs/mlkem-codex-technical-review-findings.md` records a Codex technical
   review disposition for handoff. It is not an external independent reviewer
   sign-off and does not close reviewer gates.
+- `docs/mlkem-internal-ai-review.md` records the requested internal AI review
+  pass. It is not an external independent reviewer sign-off and does not close
+  reviewer gates.
+- `docs/mlkem-emsi-dm-production-readiness.md` approves EMSI DM production
+  integration only through official/native provider selection with
+  language-native fallback blocked by default. It does not approve pure Swift,
+  pure Kotlin, or managed C# fallback production use.
 - A 2026-06-05 local-time iOS Release benchmark produced measured
   physical-device JSON for `iPhone 17 (iPhone18,3)` on `iOS 26.5.1 (23F81)`.
 - A 2026-06-05 local-time macOS Release benchmark produced measured
@@ -110,6 +118,8 @@ behavior, and does not record audit acceptance.
 - Side-channel review: [docs/mlkem-side-channel-review.md](mlkem-side-channel-review.md)
 - Secret-lifetime review: [docs/mlkem-secret-lifetime-review.md](mlkem-secret-lifetime-review.md)
 - Codex technical review findings: [docs/mlkem-codex-technical-review-findings.md](mlkem-codex-technical-review-findings.md)
+- Internal AI review note: [docs/mlkem-internal-ai-review.md](mlkem-internal-ai-review.md)
+- EMSI DM production readiness decision: [docs/mlkem-emsi-dm-production-readiness.md](mlkem-emsi-dm-production-readiness.md)
 - External review packet: [docs/mlkem-external-review-packet.md](mlkem-external-review-packet.md)
 - Audit status JSON: [readiness/mlkem-audit-status.json](../readiness/mlkem-audit-status.json)
 - Audit status verifier: [tools/verify_audit_status.py](../tools/verify_audit_status.py)
@@ -152,6 +162,11 @@ behavior, and does not record audit acceptance.
 - External crypto review is not accepted by a named reviewer.
 - Codex technical review findings exist for handoff, but they are not external
   independent reviewer sign-off and do not close reviewer gates.
+- Internal AI review exists for handoff, but it is not external independent
+  reviewer sign-off and does not close reviewer gates.
+- EMSI DM production integration is approved only for official/native provider
+  selection with fallback blocked. Language-native fallback production use
+  remains blocked.
 - Benchmark evidence is accepted for this closure by
   `docs/mlkem-benchmark-scope-decision.md`, but that decision does not close
   reviewer gates or approve production fallback.

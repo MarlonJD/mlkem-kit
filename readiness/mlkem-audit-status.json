@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "packageScope": "ML-KEM-768 confidentiality fallback readiness",
-  "sourceCommit": "bd596ef3997dae97dad1f517eb40172ea6fdf964",
+  "sourceCommit": "2fe24a4ae0df2b6f55de564583c8e268bb1d209d",
   "productionFallbackStatus": "fail-closed",
   "gates": [
     {
@@ -47,10 +47,12 @@
       "reviewer": "",
       "reviewedAt": "",
       "evidence": [
-        "docs/mlkem-external-review-packet.md"
+        "docs/mlkem-external-review-packet.md",
+        "docs/mlkem-internal-ai-review.md",
+        "docs/mlkem-emsi-dm-production-readiness.md"
       ],
       "blockers": [
-        "No independent external crypto review findings and acceptance decision are recorded."
+        "No independent external crypto review findings and acceptance decision are recorded. Internal AI review is recorded for handoff but is not external acceptance."
       ]
     }
   ]

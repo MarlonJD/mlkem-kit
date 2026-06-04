@@ -5,15 +5,23 @@ Scope: `mlkem-kit` public package
 
 ## Current Revision
 
-- Repository status: package-local changes in progress.
+- Reviewed source baseline:
+  `2fe24a4ae0df2b6f55de564583c8e268bb1d209d`.
 - Fresh local verification was run on 2026-06-05 local time
-  (2026-06-04 UTC) against the current dirty worktree.
+  (2026-06-04 UTC) before committing the current evidence packet.
 - Reviewer closure still requires a named reviewer decision against an exact
-  reviewed source revision. The current local changes are not reviewer
-  acceptance and do not close any gate.
+  reviewed source revision. The committed package evidence is not reviewer
+  acceptance and does not close any fallback audit gate.
 - `docs/mlkem-codex-technical-review-findings.md` records a supporting Codex
   technical review disposition for handoff. It is not an external independent
   reviewer sign-off and does not close reviewer gates.
+- `docs/mlkem-internal-ai-review.md` records the requested internal AI review
+  pass. It is not external independent crypto-review acceptance and does not
+  close reviewer gates.
+- `docs/mlkem-emsi-dm-production-readiness.md` records the EMSI DM production
+  integration decision: official/native provider selection may be used in
+  production with language-native fallback blocked. It does not approve pure
+  Swift, pure Kotlin, or managed C# fallbacks for production use.
 - A 2026-06-05 local-time iOS physical-device Release benchmark run produced
   measured JSON for `iPhone 17 (iPhone18,3)` on `iOS 26.5.1 (23F81)`.
 - A 2026-06-05 local-time macOS physical-host Release benchmark run produced
@@ -27,7 +35,7 @@ Scope: `mlkem-kit` public package
   timing sanity evidence only and not formal constant-time proof.
 - The benchmark evidence matrix for this closure was accepted by
   `mlkem-kit maintainer` in `docs/mlkem-benchmark-scope-decision.md`.
-- Pure fallback audit status: not production-approved.
+- Pure fallback audit status: not fallback-production-approved.
 - Provider policy: production fail-closed by default for language-native
   fallbacks until all audit gates close.
 
@@ -107,7 +115,7 @@ Audit review packets exist for FIPS 203 mapping, side-channel review, secret
 lifetime review, and external crypto review intake. These artifacts do not
 approve production fallback by themselves. Production fallback remains blocked
 until `readiness/mlkem-audit-status.json` records closed gates with named
-reviewer evidence and explicit production approval is in scope.
+reviewer evidence and explicit fallback production approval is in scope.
 
 Source guardrails now exist for secret logging and side-channel source shape:
 `tools/check_secret_logging.py` and `tools/check_side_channel_source.py`.
@@ -117,6 +125,16 @@ They reduce regression risk but do not replace named reviewer acceptance.
 technical dispositions for the currently documented findings. It is useful
 handoff evidence, but it is not independent external reviewer acceptance.
 
+`docs/mlkem-internal-ai-review.md` records an internal AI review by Codex
+sub-agent `Carver` (`019e94df-3d23-7320-a48b-e958faa1eb40`). That review
+confirmed the packet is ready for reviewer handoff, but it is not external
+independent crypto-review acceptance and does not close reviewer gates.
+
+`docs/mlkem-emsi-dm-production-readiness.md` approves only the production
+integration posture that selects official/native providers and fails closed
+when no complete official provider is available. It does not approve
+language-native fallback selection in production.
+
 No local artifact inspected in this closure pass contains a named reviewer,
 review date, reviewed source commit, findings disposition, or acceptance
 decision for the FIPS 203 code map, side-channel residual risk,
@@ -125,10 +143,14 @@ remain open.
 
 ## Production Readiness Decision
 
-The package may be used for local, test, or non-production vector parity work.
-It must not silently select an unaudited language-native fallback in production.
-Production selection remains blocked. The exact remaining blockers and limits
-are:
+The package may be used for EMSI DM production integration only through
+official/native provider selection with language-native fallback blocked by
+default. It may also be used for local, test, or non-production vector parity
+work. It must not silently select an unaudited language-native fallback in
+production.
+
+Production fallback selection remains blocked. The exact remaining blockers and
+limits are:
 
 - FIPS 203 code-map acceptance by a real named reviewer is not recorded.
 - Side-channel residual-risk acceptance by a real named reviewer is not

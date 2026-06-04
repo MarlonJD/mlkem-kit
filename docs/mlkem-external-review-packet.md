@@ -2,7 +2,7 @@
 
 Date: 2026-06-04
 Scope: `mlkem-kit` ML-KEM-768 confidentiality fallback readiness
-Evidence commit: bd596ef3997dae97dad1f517eb40172ea6fdf964
+Evidence commit: 2fe24a4ae0df2b6f55de564583c8e268bb1d209d
 
 ## Review Request
 
@@ -15,9 +15,10 @@ risk, secret lifetime risk, and provider fallback policy.
 Do not broaden the review into behavior outside the source files and evidence
 artifacts listed below.
 
-This local readiness packet may include package-local uncommitted changes.
-Reviewer acceptance must name the exact reviewed source commit or captured
-source revision before any audit gate can close.
+This readiness packet is anchored to source revision
+`2fe24a4ae0df2b6f55de564583c8e268bb1d209d`. Reviewer acceptance must name the
+exact reviewed source commit or captured source revision before any audit gate
+can close.
 
 ## Source Files In Scope
 
@@ -39,6 +40,10 @@ source revision before any audit gate can close.
 - Secret lifetime review draft: `docs/mlkem-secret-lifetime-review.md`
 - Codex technical review findings for handoff:
   `docs/mlkem-codex-technical-review-findings.md`
+- Internal AI review note for handoff:
+  `docs/mlkem-internal-ai-review.md`
+- EMSI DM production readiness decision:
+  `docs/mlkem-emsi-dm-production-readiness.md`
 - Audit checklist: `docs/mlkem-audit-checklist.md`
 - Readiness evidence: `docs/mlkem-readiness-evidence.md`
 - Audit status: `readiness/mlkem-audit-status.json`
@@ -67,6 +72,16 @@ constant-time proof and does not close the `side-channel-review` gate.
 `docs/mlkem-codex-technical-review-findings.md` is supporting handoff material
 only. It is not an external independent reviewer sign-off and cannot close the
 external crypto review gate by itself.
+
+`docs/mlkem-internal-ai-review.md` records the Codex sub-agent review requested
+by the maintainer. It is internal AI review evidence only; it is not external
+independent crypto-review acceptance and cannot close reviewer-controlled gates
+by itself.
+
+`docs/mlkem-emsi-dm-production-readiness.md` records the production integration
+decision for EMSI DM: official/native provider selection may be used in
+production with language-native fallback blocked. This does not approve pure
+Swift, pure Kotlin, or managed C# fallback production use.
 
 ## Verification Commands
 
@@ -119,7 +134,9 @@ The reviewer output must include:
 
 ## Current Production Decision
 
-Production fallback remains fail-closed. Do not mark
+Production integration for EMSI DM is limited to official/native provider
+selection with language-native fallback blocked by default. Production fallback
+remains fail-closed. Do not mark
 `productionFallbackStatus` as `approved` unless every gate in
 `readiness/mlkem-audit-status.json` is closed by real reviewer evidence and all
 benchmark requirements are complete for the documented production scope, or a

@@ -74,7 +74,9 @@ is recorded.
 - Status: open
 - Reviewer: not assigned
 - Reviewed at: not recorded
-- Evidence: not recorded
+- Evidence: source-level lifetime review draft in
+  `docs/mlkem-secret-lifetime-review.md`; status remains open pending named
+  reviewer sign-off.
 
 ### Representation compatibility
 

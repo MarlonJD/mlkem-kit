@@ -1,0 +1,99 @@
+using Xunit;
+
+namespace MLKemNative.Tests;
+
+public sealed class MLKemProviderPolicyTests
+{
+    [Fact]
+    public void DotNetProviderIsSelectedOnlyWhenBuiltInMlKemIsSupported()
+    {
+        var runtime = new MLKemDotNetRuntimeCapabilities(
+            BuiltInMLKemSupported: true,
+            BuiltInProviderSupportsKeyGeneration: true,
+            BuiltInProviderSupportsEncapsulation: true,
+            BuiltInProviderSupportsDecapsulation: true,
+            ManagedFallbackAvailable: true,
+            RuntimeDescription: ".NET 10 on supported Windows build");
+
+        MLKemProviderSelection selection = MLKemProviderPolicy.SelectDotNetProvider(
+            runtime,
+            MLKemProviderPolicy.Production());
+
+        Assert.Equal("dotnet-system-security-cryptography-mlkem768", selection.Provider?.ProviderId);
+        Assert.True(selection.Provider!.IsPlatformNative);
+        Assert.False(selection.Provider.UsesPInvoke);
+        Assert.False(selection.Provider.UsesCOrFfi);
+    }
+
+    [Fact]
+    public void BuiltInProviderMustExposeEveryKemOperation()
+    {
+        var runtime = new MLKemDotNetRuntimeCapabilities(
+            BuiltInMLKemSupported: true,
+            BuiltInProviderSupportsKeyGeneration: true,
+            BuiltInProviderSupportsEncapsulation: true,
+            BuiltInProviderSupportsDecapsulation: false,
+            ManagedFallbackAvailable: true,
+            RuntimeDescription: ".NET 10 preview without full KEM operations");
+
+        MLKemProviderSelection selection = MLKemProviderPolicy.SelectDotNetProvider(
+            runtime,
+            MLKemProviderPolicy.Production());
+
+        Assert.Null(selection.Provider);
+        Assert.Equal(MLKemProviderFailureReason.BuiltInProviderIncomplete, selection.FailureReason);
+    }
+
+    [Fact]
+    public void ProductionFallbackFailsClosedWhenAuditGatesAreIncomplete()
+    {
+        var runtime = new MLKemDotNetRuntimeCapabilities(
+            BuiltInMLKemSupported: false,
+            BuiltInProviderSupportsKeyGeneration: false,
+            BuiltInProviderSupportsEncapsulation: false,
+            BuiltInProviderSupportsDecapsulation: false,
+            ManagedFallbackAvailable: true,
+            RuntimeDescription: ".NET runtime without built-in ML-KEM");
+
+        MLKemProviderSelection selection = MLKemProviderPolicy.SelectDotNetProvider(
+            runtime,
+            MLKemProviderPolicy.Production(allowsFallbackInProduction: true));
+
+        Assert.Null(selection.Provider);
+        Assert.Equal(MLKemProviderFailureReason.FallbackAuditIncomplete, selection.FailureReason);
+    }
+
+    [Fact]
+    public void AuditedManagedFallbackRequiresPolicyAllowanceInProduction()
+    {
+        var runtime = new MLKemDotNetRuntimeCapabilities(
+            BuiltInMLKemSupported: false,
+            BuiltInProviderSupportsKeyGeneration: false,
+            BuiltInProviderSupportsEncapsulation: false,
+            BuiltInProviderSupportsDecapsulation: false,
+            ManagedFallbackAvailable: true,
+            RuntimeDescription: ".NET runtime without built-in ML-KEM");
+
+        MLKemProviderSelection selection = MLKemProviderPolicy.SelectDotNetProvider(
+            runtime,
+            MLKemProviderPolicy.Production(
+                allowsFallbackInProduction: true,
+                auditGates: MLKemProviderAuditGates.ClosedForFallbackProduction));
+
+        Assert.Equal("csharp-managed-mlkem768", selection.Provider?.ProviderId);
+        Assert.Equal("C#", selection.Provider?.ImplementationLanguage);
+        Assert.True(selection.Provider!.FallbackAllowedInProduction);
+    }
+
+    [Fact]
+    public void ManagedFallbackMetadataBlocksNativeDependencies()
+    {
+        MLKemProviderMetadata provider = MLKemProviderMetadata.ManagedCSharpMLKem768();
+
+        Assert.False(provider.UsesPInvoke);
+        Assert.False(provider.UsesCOrFfi);
+        Assert.Null(provider.NativeLibraryDependency);
+        Assert.False(provider.FallbackAllowedInProduction);
+        Assert.Equal(MLKemPrivateKeyExportPolicy.ExportableSeedRepresentation, provider.PrivateKeyExportPolicy);
+    }
+}

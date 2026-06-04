@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <!-- Avoid macOS-specific MSBuild shared-compilation issues, matching the sibling SecureEnvelopeKit/platforms/dotnet. -->
+  <!-- Avoid macOS-specific MSBuild shared-compilation issues in local test runs. -->
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
     <BuildInParallel>false</BuildInParallel>
     <UseSharedCompilation>false</UseSharedCompilation>

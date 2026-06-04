@@ -50,7 +50,7 @@ of native C/C++ build and submodule requirements.
 ## Non-Goals
 
 - Do not implement a full E2EE DM ratchet.
-- Do not change EMSI Android app UI or send-path behavior.
+- Do not change downstream Android app UI or send-path behavior.
 - Do not publish to Maven Central without explicit credentials and signing
   material.
 - Do not claim external cryptographic audit, FIPS validation, or production
@@ -188,7 +188,7 @@ to pure Kotlin in `MLKEMNativeAndroid`, preserving the current Kotlin
 requirements, remove tracked native build outputs, and keep package coordinates
 `io.github.marlonjd:mlkem-native-android`.
 
-Do not implement EMSI Android E2EE send paths, UI integration, notification
+Do not implement downstream Android E2EE send paths, UI integration, notification
 handling, full ratchet logic, Maven Central publish without credentials, or any
 unreviewed third-party crypto substitution. Verify Swift-compatible deterministic
 vectors, invalid key/ciphertext cases, tampered-ciphertext fallback, defensive

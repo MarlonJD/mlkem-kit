@@ -3,9 +3,10 @@
 Pure Swift, pure Kotlin, and pure managed C# ML-KEM-768 implementation monorepo.
 
 `mlkem-kit` is the source of truth for the Apple, Android, and .NET ML-KEM
-implementations used by the E2EE stack. Platform package names and distribution
-repositories may remain ecosystem-specific for compatibility, but protocol
-changes, shared vectors, and implementation drift fixes should land here first.
+implementations used by higher-level encrypted client protocols. Platform
+package names and distribution repositories may remain ecosystem-specific for
+compatibility, but protocol changes, shared vectors, and implementation drift
+fixes should land here first.
 
 ## Scope
 
@@ -21,10 +22,6 @@ This repository provides ML-KEM-768 primitive providers:
 It does not implement message envelopes, AES-GCM payload encryption, HKDF
 envelope derivation, notification rendering, app storage, prekey services,
 session state, or a full Triple Ratchet state machine.
-
-For envelope encryption and preview decrypt, use `SecureEnvelopeKit`. A future
-E2EE client/session layer should consume both `SecureEnvelopeKit` and
-`mlkem-kit`.
 
 ## Platforms
 
@@ -77,6 +74,26 @@ audit. Production adoption should require:
 Hardware acceleration is not a hard requirement for ML-KEM in this repository.
 The priority is reviewed, deterministic, memory-safe platform implementations
 with measured performance and bounded runtime behavior.
+
+Provider selection is fail-closed by default for production fallback paths:
+
+- Apple platforms prefer CryptoKit or lifecycle-compatible Secure Enclave
+  ML-KEM on OS 26+ only when SDK/runtime support exists.
+- Android uses an official app-facing ML-KEM provider only if Android exposes
+  one; Keystore storage support alone is not ML-KEM operation support.
+- .NET prefers official `System.Security.Cryptography` ML-KEM support when the
+  runtime provider reports support.
+- Pure Swift, pure Kotlin, and managed C# fallbacks are production-selectable
+  only after the FIPS 203 map, positive and negative vectors, side-channel
+  review, release-device benchmarks, and external crypto review are closed.
+
+See:
+
+- `docs/mlkem-provider-and-audit-strategy.md`
+- `docs/mlkem-audit-checklist.md`
+- `docs/mlkem-fips203-code-map.md`
+- `docs/mlkem-readiness-evidence.md`
+- `vectors/`
 
 ## Checks
 

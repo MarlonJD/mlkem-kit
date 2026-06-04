@@ -1,0 +1,15 @@
+# macOS metadata
+.DS_Store
+
+# SwiftPM
+platforms/swift/.build/
+platforms/swift/.swiftpm/
+
+# Android/Gradle
+platforms/android/.gradle/
+platforms/android/**/build/
+
+# .NET
+platforms/dotnet/**/bin/
+platforms/dotnet/**/obj/
+platforms/dotnet/**/TestResults/

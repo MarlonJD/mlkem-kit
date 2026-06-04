@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "ML-KEM",
+  "parameterSet": "ML-KEM-768",
+  "negativeVectors": [
+    {
+      "id": "wrong-public-key-length",
+      "mutation": "truncate raw public key by one byte",
+      "expectedResult": "InvalidPublicKey"
+    },
+    {
+      "id": "non-canonical-public-key",
+      "mutation": "fill raw public key with 0xff bytes",
+      "expectedResult": "InvalidPublicKey"
+    },
+    {
+      "id": "wrong-ciphertext-length",
+      "mutation": "truncate ciphertext by one byte",
+      "expectedResult": "InvalidCiphertext"
+    },
+    {
+      "id": "tampered-ciphertext",
+      "mutation": "flip bit 0 of byte 0",
+      "expectedResult": "decapsulation returns implicit-rejection fallback secret different from encapsulated shared secret"
+    },
+    {
+      "id": "malformed-private-representation",
+      "mutation": "wrong KMLK1 magic or wrong total length",
+      "expectedResult": "InvalidPrivateKeyRepresentation"
+    },
+    {
+      "id": "private-representation-public-key-mismatch",
+      "mutation": "flip last byte of stored public key inside private representation",
+      "expectedResult": "InvalidPrivateKeyRepresentation"
+    },
+    {
+      "id": "wrong-incremental-header-length",
+      "mutation": "truncate incremental header by one byte",
+      "expectedResult": "InvalidIncrementalHeader or InvalidPublicKey"
+    },
+    {
+      "id": "wrong-incremental-vector-length",
+      "mutation": "truncate incremental encapsulation-key vector by one byte",
+      "expectedResult": "InvalidEncapsulationKeyVector or InvalidPublicKey"
+    },
+    {
+      "id": "tampered-incremental-header-hash",
+      "mutation": "flip bit in incremental header hash",
+      "expectedResult": "InvalidIncrementalHeader or InvalidPublicKey"
+    }
+  ]
+}

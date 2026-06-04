@@ -15,16 +15,13 @@ test from a clean clone with only the .NET SDK — no OS-native ML-KEM, no OS
 SHA-3 dependency, no native/C interop — so it runs on the same broad device
 matrix as the other two platforms.
 
-This unblocks the Windows/.NET half of the EMSI E2EE stack: the envelope layer
-(`SecureEnvelopeKit/platforms/dotnet`) already exists, but Windows E2EE sends
-are gated because there is no approved ML-KEM provider for .NET
-(`docs/go-api-replacement/M11_E2EE_DM.md`,
-`apps/windows/docs/WINDOWS_E2EE_READINESS_EVIDENCE.md`).
+This unblocks .NET clients that need a managed ML-KEM provider before enabling
+encrypted send paths.
 
 ## Context
 
 - `mlkem-kit` is the source of truth for the Swift and Kotlin ML-KEM-768
-  implementations (M11_E2EE_DM.md). It currently has only `platforms/swift` and
+  implementations. It currently has only `platforms/swift` and
   `platforms/android`; there is no `platforms/dotnet`.
 - The Swift and Kotlin implementations are **pure** (no provider/native KEM) so
   they work on iOS 15.6+ and older OSes where OS-native ML-KEM is unavailable.
@@ -58,8 +55,8 @@ are gated because there is no approved ML-KEM provider for .NET
 - **Target framework.** Recommended primary `net8.0` (LTS, what the Windows app
   is most likely to consume); the code is otherwise `netstandard2.0`-compatible
   if broader reach is wanted. If the `net8.0` targeting pack is not installed,
-  verify on the installed SDK target (the sibling `SecureEnvelopeKit/platforms/dotnet`
-  uses `net10.0`) and record multi-targeting as a follow-up. Decide before tagging.
+  verify on the installed SDK target and record multi-targeting as a follow-up.
+  Decide before tagging.
 - **NuGet package id / namespace.** Recommended namespace `MLKemNative` and type
   `MLKemNative768` (mirrors Swift/Kotlin `MLKEMNative768`); package id
   `MLKemNative`. Confirm naming with the maintainer.
@@ -85,7 +82,7 @@ Port the full ML-KEM-768 surface from pure Swift/Kotlin to pure C#:
 
 Packaging and docs:
 
-- `platforms/dotnet/` mirroring the `SecureEnvelopeKit/platforms/dotnet` layout:
+- `platforms/dotnet/` using the repository's managed-package layout:
   `Directory.Build.props`, `src/MLKemNative/MLKemNative.csproj`,
   `tests/MLKemNative.Tests/MLKemNative.Tests.csproj`, a `*.slnx`, `.gitignore`,
   `README.md`, `docs/SECURITY.md`, and a `CHANGELOG.md`.
@@ -96,7 +93,7 @@ Packaging and docs:
 
 - No E2EE DM ratchet, session state, transparency, or roster logic (that is the
   higher-level protocol/client layer, not mlkem-kit).
-- No EMSI app, UI, notification, or send-path integration.
+- No downstream app, UI, notification, or send-path integration.
 - No separate `MLKEMNativeDotNet` repository or submodule.
 - No `System.Security.Cryptography.MLKem` / OS-native KEM as the baseline. It may
   be recorded as a *future optional* provider behind `MLKem.IsSupported`, gated by
@@ -116,10 +113,10 @@ Packaging and docs:
    CIPHERTEXT_PART2_BYTES 128, INCREMENTAL_ENCAPSULATION_SECRET_BYTES 64).
 
 2. **Scaffold `platforms/dotnet`.** Create the project/solution/props/.gitignore
-   mirroring `SecureEnvelopeKit/platforms/dotnet`. Enable `Nullable`,
-   `ImplicitUsings`, `AllowUnsafeBlocks` only if needed for performance. Add
-   `InternalsVisibleTo` for the test assembly so derand/testing hooks stay
-   internal.
+   with shared props, source, tests, docs, and changelog files. Enable
+   `Nullable`, `ImplicitUsings`, `AllowUnsafeBlocks` only if needed for
+   performance. Add `InternalsVisibleTo` for the test assembly so derand/testing
+   hooks stay internal.
 
 3. **Port pure Keccak.** Implement `Keccak`/`Sha3`/`Shake` in pure managed C#
    (mirror the Swift/Kotlin helpers). Pin to Keccak/SHA-3 KATs (e.g. NIST
@@ -155,8 +152,7 @@ Packaging and docs:
    - Keccak KAT tests from step 3.
 
 7. **Docs.** Add `README.md` (overview, build/test, API, algorithm, pure-managed
-   rationale, link to mlkem-kit root and to the EMSI ML-KEM boundary in
-   M11_E2EE_DM.md), `docs/SECURITY.md` (provider boundary, the pure-managed
+   rationale, and link to mlkem-kit root), `docs/SECURITY.md` (provider boundary, the pure-managed
    exception, constant-time caveat, no-audit disclaimer), and `CHANGELOG.md`.
    Update the mlkem-kit root `README.md` platform list and checks.
 
@@ -197,9 +193,9 @@ the rule that the Swift and Android ports had to pass them first.
 - Pure managed C# cannot guarantee constant-time execution (JIT, GC, bounds
   checks); like the Swift/Kotlin ports, prioritize portability and byte parity
   and document the residual side-channel risk. Not an audited implementation.
-- Pure managed may be slower than a native KEM; acceptable — ML-KEM runs at
-  bootstrap/session-setup/ratchet-step, not in notification or render hot paths
-  (M11_E2EE_DM.md). Record allocation/latency benchmarks as a follow-up before
+- Pure managed may be slower than a native KEM; acceptable because ML-KEM runs
+  at bootstrap/session-setup/ratchet-step boundaries, not in notification or
+  render hot paths. Record allocation/latency benchmarks as a follow-up before
   Windows production enablement.
 - Target-framework choice may not match the Windows app's TFM; resolve the open
   question before downstream integration.
@@ -223,9 +219,7 @@ the rule that the Swift and Android ports had to pass them first.
 - `platforms/dotnet/tests/MLKemNative.Tests/MLKemNative.Tests.csproj`
 - `platforms/dotnet/tests/MLKemNative.Tests/*.cs` (vectors, parity, guards, KATs)
 - `README.md` (root: add the `platforms/dotnet` row and check command)
-- Downstream (separate, parent-repo follow-ups, NOT in this commit):
-  `docs/go-api-replacement/M11_E2EE_DM.md`,
-  `apps/windows/docs/WINDOWS_E2EE_READINESS_EVIDENCE.md`.
+- External client integration docs belong outside this package.
 
 ## Execution Prompt
 
@@ -236,9 +230,9 @@ Add a new platforms/dotnet platform: a pure managed C# ML-KEM-768 library that m
 
 - Pure managed only: implement ML-KEM-768 and its Keccak (SHA3-256/512, SHAKE128/256) in C#. Do NOT use System.Security.Cryptography.MLKem, OS-native KEM, OS SHA-3, or any native/C interop as the baseline. ML-KEM + Keccak are the only hand-rolled crypto exception, exactly as in Swift/Kotlin; use the BCL for any AES/SHA-256/HMAC/RNG.
 - Mirror the Kotlin MLKEMNative768 public API in idiomatic C# (namespace MLKemNative, type MLKemNative768): PrivateKey (Generate, FromRepresentation, internal FromSeedForTesting, Decapsulate, DecapsulateParts, Representation), PublicKey (Encapsulate, internal EncapsulateDerand, RawRepresentation), Encapsulation, IncrementalPublicKey, IncrementalEncapsulationPart1, PublicKeyToIncremental/PublicKeyFromIncremental, EncapsulatePart1/EncapsulatePart2/DecapsulateParts, and an MLKemException hierarchy. Preserve the KMLK1 private-key representation format (magic + 64-byte seed + 1184-byte public key) and all size constants. Defensive-copy every public byte[]; use RandomNumberGenerator for randomness; expose derand/testing hooks via InternalsVisibleTo.
-- Scaffold platforms/dotnet to mirror SecureEnvelopeKit/platforms/dotnet: Directory.Build.props, a .slnx, src/MLKemNative + tests/MLKemNative.Tests (xUnit), .gitignore, README.md, docs/SECURITY.md, CHANGELOG.md. Pick target net8.0 if its targeting pack is installed; otherwise use the installed SDK target and record multi-targeting as a follow-up.
+- Scaffold platforms/dotnet with Directory.Build.props, a .slnx, src/MLKemNative + tests/MLKemNative.Tests (xUnit), .gitignore, README.md, docs/SECURITY.md, CHANGELOG.md. Pick target net8.0 if its targeting pack is installed; otherwise use the installed SDK target and record multi-targeting as a follow-up.
 - Tests must replicate the shared deterministic vectors copied verbatim from the Swift/Kotlin tests and assert byte parity for keypair public key, ciphertext, and shared secret; plus all-zero/all-one vector, tampered-ciphertext implicit rejection, invalid key/ciphertext/incremental-header cases, defensive copies, incremental part1/part2 equivalence, and Keccak SHA-3/SHAKE known-answer tests.
-- Do NOT implement E2EE ratchet/session/transparency/roster logic, EMSI app/UI integration, a separate MLKEMNativeDotNet repository, NuGet publish without credentials, or claim FIPS/audit. Do not edit parent-repo files (M11 docs, Windows evidence) in this commit.
+- Do NOT implement E2EE ratchet/session/transparency/roster logic, downstream app/UI integration, a separate MLKEMNativeDotNet repository, NuGet publish without credentials, or claim FIPS/audit. Do not edit parent-repo files in this commit.
 
 Verification (from platforms/dotnet): dotnet build; dotnet test; dotnet pack -o ./artifacts. Always run git diff --check and confirm no bin/obj or other build artifacts are staged. The port is not ready until it passes the shared vectors byte-for-byte.
 

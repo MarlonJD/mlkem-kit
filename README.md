@@ -1,27 +1,61 @@
 # mlkem-kit
 
-Pure Swift, pure Kotlin, and pure managed C# ML-KEM-768 implementation monorepo.
+Cross-platform ML-KEM-768 primitives for higher-level E2EE protocols.
 
-`mlkem-kit` is the source of truth for the Apple, Android, and .NET ML-KEM
-implementations used by higher-level encrypted client protocols. Platform
-package names and distribution repositories may remain ecosystem-specific for
-compatibility, but protocol changes, shared vectors, and implementation drift
-fixes should land here first.
+`mlkem-kit` exists because product clients need the same post-quantum KEM
+behavior on iOS, macOS, Android, and .NET without letting platform packages
+drift apart. This repository is the shared source of truth for the Swift,
+Kotlin, and managed C# implementations, their vectors, provider-selection
+policy, benchmark evidence, and readiness records.
 
-## Scope
+In plain terms: this repo gives the app layer a consistent ML-KEM-768 building
+block for key agreement. It is not the full messenger, ratchet, storage layer,
+or message envelope system.
 
-This repository provides ML-KEM-768 primitive providers:
+## Why This Exists
 
-- key generation
-- encapsulation
-- decapsulation
-- stable raw key representations
-- incremental ML-KEM pieces for higher-level Triple Ratchet / sparse
-  post-quantum ratchet protocols
+Modern E2EE clients need a post-quantum key-establishment path, but platform
+support is uneven:
 
-It does not implement message envelopes, AES-GCM payload encryption, HKDF
-envelope derivation, notification rendering, app storage, prekey services,
-session state, or a full Triple Ratchet state machine.
+- Apple has CryptoKit ML-KEM/X-Wing APIs on newer OS releases.
+- Android does not currently expose a complete app-facing ML-KEM KEM provider
+  in the target production shape documented here.
+- .NET has official ML-KEM API surface where the runtime provider reports
+  support.
+- Older OS/runtime targets still need a controlled fallback story.
+
+`mlkem-kit` keeps that fallback story explicit and testable. The pure Swift,
+pure Kotlin, and managed C# providers share vectors and policy tests so
+higher-level E2EE clients can move forward without hidden native dependencies
+or platform-specific crypto forks.
+
+## What It Provides
+
+- ML-KEM-768 key generation
+- encapsulation and decapsulation
+- stable public/private key representations
+- split/incremental ML-KEM pieces for higher-level ratchet protocols
+- shared positive and negative test vectors
+- production provider-selection policy
+- benchmark and readiness evidence
+- audit/risk-acceptance documentation
+
+## What It Does Not Provide
+
+This repository does not implement:
+
+- message envelopes
+- AES-GCM payload encryption
+- HKDF envelope derivation
+- signatures or identity verification
+- Triple Ratchet or Sparse Post-Quantum Ratchet state machines
+- prekey services
+- session persistence
+- app storage
+- backend APIs
+- notification preview rendering
+
+Those belong in the envelope, protocol, app, or backend layers.
 
 ## Platforms
 
@@ -34,13 +68,74 @@ session state, or a full Triple Ratchet state machine.
   package id is currently `MLKemNative`.
 
 The platform implementations keep their ecosystem-native package structure and
-release tooling. Shared vectors, benchmark formats, and protocol notes should
-live at the repository root as this monorepo matures.
+release tooling. Protocol changes, shared vectors, and readiness decisions
+should land here first.
+
+## Production Posture
+
+Official/native providers are preferred when they are complete and
+protocol-compatible:
+
+- Apple platforms prefer CryptoKit `MLKEM768`, CryptoKit
+  `XWingMLKEM768X25519`, or lifecycle-compatible Secure Enclave ML-KEM when
+  the selected protocol and runtime support it.
+- Android selects an official app-facing ML-KEM provider only if Android exposes
+  complete key generation, encapsulation, and decapsulation support. Keystore
+  storage support alone is not ML-KEM operation support.
+- .NET prefers official `System.Security.Cryptography` ML-KEM support when the
+  runtime provider reports complete support.
+
+Pure Swift, pure Kotlin, and managed C# fallbacks are production-selectable for
+the owning application only through explicit maintainer risk acceptance. They
+are not selected silently.
+
+Required production fallback opt-in:
+
+- set the production policy to allow fallback selection; and
+- pass the documented platform risk-acceptance gate.
+
+`readiness/mlkem-audit-status.json` records
+`productionFallbackStatus: "risk-accepted"` for fallback use. Reviewer gates
+remain open because this is maintainer risk acceptance, not external independent
+crypto-review acceptance.
+
+## Security Claims And Non-Claims
+
+This project is intentionally precise about what it claims:
+
+- It does not claim FIPS validation.
+- It does not claim formal constant-time proof.
+- It does not claim independent external crypto-review acceptance.
+- It does not claim managed-runtime zeroization guarantees.
+- Android and Windows benchmark evidence remains labelled proxy/non-device
+  where applicable.
+
+What it does provide is reviewed source structure, shared vectors, regression
+guardrails, timing sanity evidence, benchmark records, and an explicit
+maintainer risk-acceptance path for production fallback use.
+
+See:
+
+- `docs/mlkem-production-fallback-risk-acceptance.md`
+- `docs/mlkem-provider-and-audit-strategy.md`
+- `docs/mlkem-audit-checklist.md`
+- `docs/mlkem-readiness-evidence.md`
+- `docs/mlkem-external-review-packet.md`
+
+## Relationship To E2EE Layers
+
+ML-KEM should run during bootstrap, prekey/session setup, post-quantum ratchet
+steps, preview-key rotation, companion enrollment, or transfer flows.
+
+Notification preview handlers should not call ML-KEM, advance ratchets, query
+databases, sync history, or perform full message decrypt. They should only open
+an already-encrypted preview envelope with preview-only key material through the
+envelope layer.
 
 ## Compatibility Repositories
 
-The earlier repositories may stay online as compatibility, distribution, or
-archive surfaces:
+Earlier repositories may stay online as compatibility, distribution, or archive
+surfaces:
 
 - `MarlonJD/MLKEMNativeSwift`
 - `MarlonJD/MLKEMNativeAndroid`
@@ -48,54 +143,20 @@ archive surfaces:
 Do not make new protocol-level changes in those repositories without bringing
 the same change back to this monorepo first.
 
-## Relationship To E2EE Layers
-
-ML-KEM is not a notification-render hot path. It should run during bootstrap,
-prekey/session setup, post-quantum ratchet steps, preview-key rotation,
-companion enrollment, or transfer flows.
-
-Notification preview handlers should not call ML-KEM, advance ratchets, query
-databases, sync history, or perform full message decrypt. They should only open
-the already-encrypted preview envelope with preview-only key material through
-the envelope layer.
-
-## Production Readiness
-
-These implementations do not claim FIPS validation or an external cryptographic
-audit. Production adoption should require:
-
-- pinned tags or commits;
-- cross-platform deterministic vector parity;
-- side-channel and secret-handling review;
-- release-device allocation and latency benchmarks;
-- timeout and fallback behavior for slow devices;
-- clear compatibility policy for older distribution repositories or artifacts.
-
-Hardware acceleration is not a hard requirement for ML-KEM in this repository.
-The priority is reviewed, deterministic, memory-safe platform implementations
-with measured performance and bounded runtime behavior.
-
-Provider selection is fail-closed by default for production fallback paths:
-
-- Apple platforms prefer CryptoKit or lifecycle-compatible Secure Enclave
-  ML-KEM on OS 26+ only when SDK/runtime support exists.
-- Android uses an official app-facing ML-KEM provider only if Android exposes
-  one; Keystore storage support alone is not ML-KEM operation support.
-- .NET prefers official `System.Security.Cryptography` ML-KEM support when the
-  runtime provider reports support.
-- Pure Swift, pure Kotlin, and managed C# fallbacks are production-selectable
-  only after the FIPS 203 map, positive and negative vectors, side-channel
-  review, release-device benchmarks, and external crypto review are closed.
-
-See:
-
-- `docs/mlkem-provider-and-audit-strategy.md`
-- `docs/mlkem-audit-checklist.md`
-- `docs/mlkem-fips203-code-map.md`
-- `docs/mlkem-readiness-evidence.md`
-- `vectors/`
-
 ## Checks
+
+From the repository root:
+
+```sh
+tools/verify_vectors.py
+tools/verify_audit_status.py
+tools/check_public_scope.sh
+tools/check_entropy_boundary.py
+tools/check_secret_logging.py
+tools/check_side_channel_source.py
+```
+
+Platform tests:
 
 ```sh
 cd platforms/swift && swift test

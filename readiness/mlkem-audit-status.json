@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "packageScope": "ML-KEM-768 confidentiality fallback readiness",
-  "sourceCommit": "4a29d9089f0c535a8ecba31790c8ec5c00fee5bc",
+  "sourceCommit": "bd596ef3997dae97dad1f517eb40172ea6fdf964",
   "productionFallbackStatus": "fail-closed",
   "gates": [
     {

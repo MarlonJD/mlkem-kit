@@ -53,6 +53,10 @@ Run `tools/verify_vectors.py` before changing shared vector manifests. Release
 device benchmark evidence must conform to
 `benchmarks/release-device-results.schema.json`; the example file records
 missing evidence only and is not production evidence.
+Run `tools/verify_audit_status.py` before release to ensure audit review gates
+are internally consistent. External crypto reviewers should use
+`docs/mlkem-external-review-packet.md`; this packet is public-safe and limited
+to ML-KEM confidentiality fallback readiness.
 
 ## Current Status
 

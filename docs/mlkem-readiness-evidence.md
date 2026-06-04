@@ -49,6 +49,14 @@ results into production evidence. Emulator benchmark results may support local
 regression checks, and hosted CI benchmark artifacts may support public
 reproducibility checks, but neither satisfies release-device requirements.
 
+## Audit Review Evidence
+
+Audit review packets exist for FIPS 203 mapping, side-channel review, secret
+lifetime review, and external crypto review intake. These artifacts do not
+approve production fallback by themselves. Production fallback remains blocked
+until `readiness/mlkem-audit-status.json` records closed gates with named
+reviewer evidence and release-device benchmark requirements are complete.
+
 ## Production Readiness Decision
 
 The package may be used for local, test, or non-production vector parity work.

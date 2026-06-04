@@ -113,7 +113,9 @@ is recorded.
 - Status: open
 - Reviewer: not assigned
 - Reviewed at: not recorded
-- Evidence: not recorded
+- Evidence: review intake packet in `docs/mlkem-external-review-packet.md`;
+  status remains open until independent reviewer findings and acceptance are
+  recorded.
 
 ## Side-Channel Review Prompts
 

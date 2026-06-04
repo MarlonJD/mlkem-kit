@@ -35,10 +35,10 @@ fallback by itself.
   - `tools/verify_vectors.py` passed on 2026-06-05 local time with
     `vector manifests ok`.
   - `swift test` from `platforms/swift` passed on 2026-06-05 local time with
-    18 tests.
+    19 tests.
   - `./gradlew test` from `platforms/android` passed on 2026-06-05 local time.
   - `dotnet test` from `platforms/dotnet` passed on 2026-06-05 local time with
-    19 tests.
+    20 tests.
   - Platform tests cover deterministic vector parity, all-zero/all-one vector
     parity, one-shot encapsulation/decapsulation, and incremental split
     encapsulation parity. Status remains open pending named reviewer
@@ -199,7 +199,8 @@ fallback by itself.
   supporting non-external technical findings in
   `docs/mlkem-codex-technical-review-findings.md`; internal AI review note in
   `docs/mlkem-internal-ai-review.md`; EMSI DM production integration decision in
-  `docs/mlkem-emsi-dm-production-readiness.md`. Status remains open until
+  `docs/mlkem-emsi-dm-production-readiness.md`; maintainer risk acceptance in
+  `docs/mlkem-production-fallback-risk-acceptance.md`. Status remains open until
   independent reviewer findings and acceptance are recorded.
 
 ## Side-Channel Review Prompts
@@ -221,9 +222,11 @@ fallback by itself.
 An audited fallback is production-selectable only when every reviewer-controlled
 row above is closed with real reviewer evidence and production approval is
 explicitly in scope for fallback use. Until then, production provider policy
-must fail closed for language-native fallback selection.
+must fail closed for language-native fallback selection unless the caller uses
+the documented EMSI DM maintainer risk-acceptance path.
 
-EMSI DM production integration is approved only for official/native provider
-selection with language-native fallback blocked. This integration decision does
-not close fallback audit gates and does not approve pure Swift, pure Kotlin, or
-managed C# fallback production use.
+EMSI DM production integration is approved for official/native provider
+selection when available and for explicit maintainer risk-accepted pure Swift,
+pure Kotlin, or managed C# fallback production use when needed. This integration
+decision does not close fallback audit gates and is not external independent
+crypto-review acceptance.

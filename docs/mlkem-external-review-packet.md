@@ -2,7 +2,7 @@
 
 Date: 2026-06-04
 Scope: `mlkem-kit` ML-KEM-768 confidentiality fallback readiness
-Evidence commit: 2fe24a4ae0df2b6f55de564583c8e268bb1d209d
+Evidence commit: c62b1f3c0f83d869182d1555a0fb8e6900f7524e
 
 ## Review Request
 
@@ -16,7 +16,7 @@ Do not broaden the review into behavior outside the source files and evidence
 artifacts listed below.
 
 This readiness packet is anchored to source revision
-`2fe24a4ae0df2b6f55de564583c8e268bb1d209d`. Reviewer acceptance must name the
+`c62b1f3c0f83d869182d1555a0fb8e6900f7524e`. Reviewer acceptance must name the
 exact reviewed source commit or captured source revision before any audit gate
 can close.
 
@@ -44,6 +44,8 @@ can close.
   `docs/mlkem-internal-ai-review.md`
 - EMSI DM production readiness decision:
   `docs/mlkem-emsi-dm-production-readiness.md`
+- Production fallback risk acceptance:
+  `docs/mlkem-production-fallback-risk-acceptance.md`
 - Audit checklist: `docs/mlkem-audit-checklist.md`
 - Readiness evidence: `docs/mlkem-readiness-evidence.md`
 - Audit status: `readiness/mlkem-audit-status.json`
@@ -79,9 +81,12 @@ independent crypto-review acceptance and cannot close reviewer-controlled gates
 by itself.
 
 `docs/mlkem-emsi-dm-production-readiness.md` records the production integration
-decision for EMSI DM: official/native provider selection may be used in
-production with language-native fallback blocked. This does not approve pure
-Swift, pure Kotlin, or managed C# fallback production use.
+decision for EMSI DM: official/native provider selection is preferred, and
+language-native fallback selection requires explicit maintainer risk acceptance.
+
+`docs/mlkem-production-fallback-risk-acceptance.md` records maintainer risk
+acceptance for EMSI DM production fallback use. It is not external independent
+crypto-review acceptance and cannot close reviewer-controlled gates by itself.
 
 ## Verification Commands
 
@@ -134,10 +139,9 @@ The reviewer output must include:
 
 ## Current Production Decision
 
-Production integration for EMSI DM is limited to official/native provider
-selection with language-native fallback blocked by default. Production fallback
-remains fail-closed. Do not mark
-`productionFallbackStatus` as `approved` unless every gate in
+Production integration for EMSI DM permits explicit maintainer risk-accepted
+language-native fallback use. `productionFallbackStatus` is `risk-accepted`.
+Do not mark it as `approved` unless every gate in
 `readiness/mlkem-audit-status.json` is closed by real reviewer evidence and all
 benchmark requirements are complete for the documented production scope, or a
 real documented production benchmark-scope decision accepts proxy/non-device

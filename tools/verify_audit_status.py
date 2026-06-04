@@ -13,12 +13,15 @@ GATE_IDS = {
     "secret-lifetime-review",
     "external-crypto-review",
 }
-TOP_LEVEL_KEYS = {
+REQUIRED_TOP_LEVEL_KEYS = {
     "schemaVersion",
     "packageScope",
     "sourceCommit",
     "productionFallbackStatus",
     "gates",
+}
+ALLOWED_TOP_LEVEL_KEYS = REQUIRED_TOP_LEVEL_KEYS | {
+    "productionFallbackRiskAcceptance",
 }
 GATE_KEYS = {
     "id",
@@ -27,6 +30,15 @@ GATE_KEYS = {
     "reviewedAt",
     "evidence",
     "blockers",
+}
+RISK_ACCEPTANCE_KEYS = {
+    "status",
+    "decisionOwner",
+    "acceptedAt",
+    "scope",
+    "evidence",
+    "constraints",
+    "nonClaims",
 }
 
 
@@ -78,9 +90,63 @@ def require_existing_repo_path(root: Path, evidence_path: str, gate_id: str) -> 
     )
 
 
+def verify_risk_acceptance(value: object, root: Path) -> None:
+    require(isinstance(value, dict), "productionFallbackRiskAcceptance must be an object")
+    require(
+        set(value) == RISK_ACCEPTANCE_KEYS,
+        "productionFallbackRiskAcceptance has unexpected fields",
+    )
+    require(value.get("status") == "accepted", "risk acceptance status must be accepted")
+    decision_owner = require_string(
+        value.get("decisionOwner"),
+        "productionFallbackRiskAcceptance.decisionOwner",
+    )
+    accepted_at = require_string(
+        value.get("acceptedAt"),
+        "productionFallbackRiskAcceptance.acceptedAt",
+    )
+    scope = require_string(value.get("scope"), "productionFallbackRiskAcceptance.scope")
+    evidence = require_non_empty_string_list(
+        value.get("evidence"),
+        "productionFallbackRiskAcceptance.evidence",
+    )
+    constraints = require_non_empty_string_list(
+        value.get("constraints"),
+        "productionFallbackRiskAcceptance.constraints",
+    )
+    non_claims = require_non_empty_string_list(
+        value.get("nonClaims"),
+        "productionFallbackRiskAcceptance.nonClaims",
+    )
+
+    require(len(decision_owner) > 0, "risk acceptance requires decisionOwner")
+    require(
+        re.fullmatch(r"\d{4}-\d{2}-\d{2}", accepted_at) is not None,
+        "risk acceptance acceptedAt must be YYYY-MM-DD",
+    )
+    require(len(scope) > 0, "risk acceptance requires scope")
+    for evidence_path in evidence:
+        require_existing_repo_path(root, evidence_path, "productionFallbackRiskAcceptance")
+
+    joined_non_claims = " ".join(non_claims).lower()
+    for required_phrase in ("fips", "constant-time", "external"):
+        require(
+            required_phrase in joined_non_claims,
+            f"risk acceptance nonClaims must mention {required_phrase}",
+        )
+
+    joined_constraints = " ".join(constraints).lower()
+    require("explicit" in joined_constraints, "risk acceptance constraints must require explicit opt-in")
+    require("production" in joined_constraints, "risk acceptance constraints must mention production")
+
+
 def verify(status: object, root: Path = ROOT) -> None:
     require(isinstance(status, dict), "audit status must be an object")
-    require(set(status) == TOP_LEVEL_KEYS, "audit status has unexpected fields")
+    require(
+        REQUIRED_TOP_LEVEL_KEYS.issubset(status),
+        "audit status is missing required fields",
+    )
+    require(set(status).issubset(ALLOWED_TOP_LEVEL_KEYS), "audit status has unexpected fields")
     require(status.get("schemaVersion") == 1, "schemaVersion must be 1")
     require(
         status.get("packageScope") == PACKAGE_SCOPE,
@@ -95,8 +161,8 @@ def verify(status: object, root: Path = ROOT) -> None:
 
     production_status = status.get("productionFallbackStatus")
     require(
-        production_status in {"fail-closed", "approved"},
-        "productionFallbackStatus must be fail-closed or approved",
+        production_status in {"fail-closed", "risk-accepted", "approved"},
+        "productionFallbackStatus must be fail-closed, risk-accepted, or approved",
     )
 
     gates = status.get("gates")
@@ -142,10 +208,20 @@ def verify(status: object, root: Path = ROOT) -> None:
     missing = GATE_IDS - seen
     require(not missing, f"missing gate ids: {', '.join(sorted(missing))}")
 
+    risk_acceptance = status.get("productionFallbackRiskAcceptance")
+    if production_status == "risk-accepted":
+        require(
+            risk_acceptance is not None,
+            "productionFallbackStatus risk-accepted requires productionFallbackRiskAcceptance",
+        )
+        verify_risk_acceptance(risk_acceptance, root)
+    elif risk_acceptance is not None:
+        verify_risk_acceptance(risk_acceptance, root)
+
     if production_status == "approved":
         require(all_closed, "productionFallbackStatus approved requires all gates closed")
     elif all_closed:
-        raise SystemExit("all gates closed but productionFallbackStatus remains fail-closed")
+        raise SystemExit("all gates closed but productionFallbackStatus is not approved")
 
 
 def main() -> None:

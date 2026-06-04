@@ -222,6 +222,31 @@ struct MLKEMProviderPolicyTests {
         #expect(selection.provider?.fallbackAllowedInProduction == true)
     }
 
+    @Test("Apple production fallback can use explicit EMSI DM maintainer risk acceptance")
+    func productionFallbackAllowsMaintainerRiskAcceptanceWhenPolicyAllowsIt() {
+        let runtime = MLKEMAppleRuntimeCapabilities(
+            platform: .macOS,
+            osMajorVersion: 25,
+            sdkExposesCryptoKitMLKEM768: false,
+            sdkExposesCryptoKitXWing: false,
+            secureEnclaveMLKEMAvailable: false,
+            secureEnclaveKeyLifecycleCompatible: false,
+            pureSwiftFallbackAvailable: true
+        )
+
+        let selection = MLKEMProviderPolicy.selectAppleProvider(
+            runtime: runtime,
+            policy: .production(
+                protocolMode: .rawMLKEM768,
+                allowsFallbackInProduction: true,
+                auditGates: .riskAcceptedForEMSIDMProductionFallback
+            )
+        )
+
+        #expect(selection.provider?.providerId == "swift-pure-mlkem768")
+        #expect(selection.provider?.fallbackAllowedInProduction == true)
+    }
+
     @Test("Swift fallback metadata remains language-native and blocks native dependencies")
     func swiftFallbackMetadataBlocksNativeDependencies() {
         let provider = MLKEMProviderMetadata.pureSwiftMLKEM768()

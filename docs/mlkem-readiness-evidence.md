@@ -6,11 +6,11 @@ Scope: `mlkem-kit` public package
 ## Current Revision
 
 - Reviewed source baseline:
-  `2fe24a4ae0df2b6f55de564583c8e268bb1d209d`.
+  `c62b1f3c0f83d869182d1555a0fb8e6900f7524e`.
 - Fresh local verification was run on 2026-06-05 local time
-  (2026-06-04 UTC) before committing the current evidence packet.
+  (2026-06-04 UTC) against the current package-local worktree.
 - Reviewer closure still requires a named reviewer decision against an exact
-  reviewed source revision. The committed package evidence is not reviewer
+  reviewed source revision. The package-local evidence is not reviewer
   acceptance and does not close any fallback audit gate.
 - `docs/mlkem-codex-technical-review-findings.md` records a supporting Codex
   technical review disposition for handoff. It is not an external independent
@@ -19,9 +19,13 @@ Scope: `mlkem-kit` public package
   pass. It is not external independent crypto-review acceptance and does not
   close reviewer gates.
 - `docs/mlkem-emsi-dm-production-readiness.md` records the EMSI DM production
-  integration decision: official/native provider selection may be used in
-  production with language-native fallback blocked. It does not approve pure
-  Swift, pure Kotlin, or managed C# fallbacks for production use.
+  integration decision: official/native provider selection is preferred, and
+  pure Swift, pure Kotlin, or managed C# fallback selection may be used only
+  through explicit maintainer risk acceptance.
+- `docs/mlkem-production-fallback-risk-acceptance.md` records maintainer risk
+  acceptance for EMSI DM production fallback use. It is not external
+  independent crypto-review acceptance, not FIPS validation, and not formal
+  constant-time proof.
 - A 2026-06-05 local-time iOS physical-device Release benchmark run produced
   measured JSON for `iPhone 17 (iPhone18,3)` on `iOS 26.5.1 (23F81)`.
 - A 2026-06-05 local-time macOS physical-host Release benchmark run produced
@@ -35,9 +39,11 @@ Scope: `mlkem-kit` public package
   timing sanity evidence only and not formal constant-time proof.
 - The benchmark evidence matrix for this closure was accepted by
   `mlkem-kit maintainer` in `docs/mlkem-benchmark-scope-decision.md`.
-- Pure fallback audit status: not fallback-production-approved.
+- Pure fallback audit status: maintainer risk-accepted for EMSI DM production
+  fallback use; not external-audit-approved.
 - Provider policy: production fail-closed by default for language-native
-  fallbacks until all audit gates close.
+  fallbacks unless the caller supplies explicit fallback allowance plus closed
+  audit gates or the EMSI DM risk-acceptance gate.
 
 ## Verification Evidence
 
@@ -49,12 +55,12 @@ Scope: `mlkem-kit` public package
 | Secret logging guardrail | `tools/check_secret_logging.py` | Passed on 2026-06-05 local time: `secret logging ok`. |
 | Side-channel source guardrail | `tools/check_side_channel_source.py` | Passed on 2026-06-05 local time: `side-channel source guardrails ok`. |
 | Entropy boundary | `tools/check_entropy_boundary.py` | Passed on 2026-06-05 local time: `entropy boundary ok`. |
-| Audit status JSON | `python3 -m json.tool readiness/mlkem-audit-status.json` | Passed on 2026-06-05 local time; JSON formatted successfully and keeps `productionFallbackStatus: "fail-closed"`. |
+| Audit status JSON | `python3 -m json.tool readiness/mlkem-audit-status.json` | Passed on 2026-06-05 local time; JSON formatted successfully and records `productionFallbackStatus: "risk-accepted"`. |
 | Benchmark JSON formatting | `python3 -m json.tool benchmarks/release-device-results*.json` | Passed on 2026-06-05 local time for the schema, example, iOS, macOS, Android emulator, Windows GitHub Actions, and local .NET-on-macOS JSON files, including the 2026-06-05 iPhone 17 physical-device result and MacBook Pro physical-host result. |
 | Timing-sanity JSON formatting | `python3 -m json.tool benchmarks/side-channel-timing-sanity-results.schema.json` and `python3 -m json.tool benchmarks/side-channel-timing-sanity.macos-local-host.2026-06-05.json` | Passed on 2026-06-05 local time. Result JSON was copied from real `MLKEM_TIMING_SANITY_JSON_BEGIN` / `MLKEM_TIMING_SANITY_JSON_END` benchmark output. |
-| Swift | `swift test` from `platforms/swift` | Passed on 2026-06-05 local time: 18 tests, 0 failures. |
+| Swift | `swift test` from `platforms/swift` | Passed on 2026-06-05 local time: 19 tests, 0 failures. |
 | Android | `./gradlew test` from `platforms/android` | Passed on 2026-06-05 local time: `BUILD SUCCESSFUL`. |
-| .NET | `dotnet test` from `platforms/dotnet` | Passed on 2026-06-05 local time: 19 tests, 0 failures. |
+| .NET | `dotnet test` from `platforms/dotnet` | Passed on 2026-06-05 local time: 20 tests, 0 failures. |
 
 ## Benchmark Proxy Matrix
 
@@ -113,9 +119,10 @@ evidence.
 
 Audit review packets exist for FIPS 203 mapping, side-channel review, secret
 lifetime review, and external crypto review intake. These artifacts do not
-approve production fallback by themselves. Production fallback remains blocked
-until `readiness/mlkem-audit-status.json` records closed gates with named
-reviewer evidence and explicit fallback production approval is in scope.
+approve production fallback by themselves. External-audit-approved fallback
+status remains blocked until `readiness/mlkem-audit-status.json` records closed
+gates with named reviewer evidence and explicit fallback production approval is
+in scope.
 
 Source guardrails now exist for secret logging and side-channel source shape:
 `tools/check_secret_logging.py` and `tools/check_side_channel_source.py`.
@@ -130,10 +137,15 @@ sub-agent `Carver` (`019e94df-3d23-7320-a48b-e958faa1eb40`). That review
 confirmed the packet is ready for reviewer handoff, but it is not external
 independent crypto-review acceptance and does not close reviewer gates.
 
-`docs/mlkem-emsi-dm-production-readiness.md` approves only the production
-integration posture that selects official/native providers and fails closed
-when no complete official provider is available. It does not approve
-language-native fallback selection in production.
+`docs/mlkem-production-fallback-risk-acceptance.md` records maintainer risk
+acceptance for EMSI DM production fallback use. This enables explicit opt-in
+fallback selection without converting the open reviewer gates into external
+crypto-review acceptance.
+
+`docs/mlkem-emsi-dm-production-readiness.md` approves the production
+integration posture that prefers official/native providers and permits
+language-native fallback selection only when the application supplies explicit
+fallback allowance plus the EMSI DM risk-acceptance gate.
 
 No local artifact inspected in this closure pass contains a named reviewer,
 review date, reviewed source commit, findings disposition, or acceptance
@@ -143,14 +155,15 @@ remain open.
 
 ## Production Readiness Decision
 
-The package may be used for EMSI DM production integration only through
-official/native provider selection with language-native fallback blocked by
-default. It may also be used for local, test, or non-production vector parity
-work. It must not silently select an unaudited language-native fallback in
-production.
+The package may be used for EMSI DM production integration through
+official/native provider selection when available, or through pure Swift, pure
+Kotlin, and managed C# fallback selection when the application explicitly opts
+into the maintainer risk-acceptance gate. It may also be used for local, test,
+or non-production vector parity work. It must not silently select a
+language-native fallback in production.
 
-Production fallback selection remains blocked. The exact remaining blockers and
-limits are:
+External-audit-approved fallback selection remains blocked. The exact remaining
+reviewer blockers and limits are:
 
 - FIPS 203 code-map acceptance by a real named reviewer is not recorded.
 - Side-channel residual-risk acceptance by a real named reviewer is not

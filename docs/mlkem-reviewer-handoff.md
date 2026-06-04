@@ -3,26 +3,26 @@
 Date: 2026-06-04
 Scope: `packages/mlkem-kit`
 
-This packet is a reviewer handoff only. It does not approve production fallback
-selection, does not claim FIPS validation, does not claim formal constant-time
-behavior, and does not record audit acceptance.
+This packet is a reviewer handoff only. It does not claim FIPS validation, does
+not claim formal constant-time behavior, and does not record external audit
+acceptance.
 
 ## Current Decision
 
 - `readiness/mlkem-audit-status.json` records
-  `productionFallbackStatus: "fail-closed"`.
+  `productionFallbackStatus: "risk-accepted"`.
 - All reviewer gates remain `open`.
 - No reviewer is assigned and no reviewer sign-off is recorded.
-- Production fallback must remain blocked unless the audit status is updated
-  with real named reviewer evidence. The benchmark matrix is accepted for this
-  closure by `docs/mlkem-benchmark-scope-decision.md`, but that decision does
-  not approve production fallback.
+- EMSI DM production fallback is permitted only through explicit maintainer
+  risk acceptance in `docs/mlkem-production-fallback-risk-acceptance.md`.
+  External-audit-approved production fallback remains blocked unless the audit
+  status is updated with real named reviewer evidence.
 - Non-device automation was refreshed on 2026-06-05 local time and passed, but
   automation does not close reviewer gates.
 - The reviewed source baseline is
-  `2fe24a4ae0df2b6f55de564583c8e268bb1d209d`. Reviewer closure still requires a
+  `c62b1f3c0f83d869182d1555a0fb8e6900f7524e`. Reviewer closure still requires a
   named reviewer decision against an exact reviewed source revision; the
-  committed package evidence is not reviewer acceptance.
+  package-local evidence is not reviewer acceptance.
 - Android emulator output and Windows GitHub Actions output are the planned
   Android/Windows proxy benchmark path for this non-device closure. They are
   not physical release-device evidence and do not approve production fallback.
@@ -33,9 +33,9 @@ behavior, and does not record audit acceptance.
   pass. It is not an external independent reviewer sign-off and does not close
   reviewer gates.
 - `docs/mlkem-emsi-dm-production-readiness.md` approves EMSI DM production
-  integration only through official/native provider selection with
-  language-native fallback blocked by default. It does not approve pure Swift,
-  pure Kotlin, or managed C# fallback production use.
+  integration through official/native provider selection when available, and
+  through explicit maintainer risk-accepted pure Swift, pure Kotlin, or managed
+  C# fallback selection when needed.
 - A 2026-06-05 local-time iOS Release benchmark produced measured
   physical-device JSON for `iPhone 17 (iPhone18,3)` on `iOS 26.5.1 (23F81)`.
 - A 2026-06-05 local-time macOS Release benchmark produced measured
@@ -120,6 +120,7 @@ behavior, and does not record audit acceptance.
 - Codex technical review findings: [docs/mlkem-codex-technical-review-findings.md](mlkem-codex-technical-review-findings.md)
 - Internal AI review note: [docs/mlkem-internal-ai-review.md](mlkem-internal-ai-review.md)
 - EMSI DM production readiness decision: [docs/mlkem-emsi-dm-production-readiness.md](mlkem-emsi-dm-production-readiness.md)
+- Production fallback risk acceptance: [docs/mlkem-production-fallback-risk-acceptance.md](mlkem-production-fallback-risk-acceptance.md)
 - External review packet: [docs/mlkem-external-review-packet.md](mlkem-external-review-packet.md)
 - Audit status JSON: [readiness/mlkem-audit-status.json](../readiness/mlkem-audit-status.json)
 - Audit status verifier: [tools/verify_audit_status.py](../tools/verify_audit_status.py)
@@ -164,9 +165,9 @@ behavior, and does not record audit acceptance.
   independent reviewer sign-off and do not close reviewer gates.
 - Internal AI review exists for handoff, but it is not external independent
   reviewer sign-off and does not close reviewer gates.
-- EMSI DM production integration is approved only for official/native provider
-  selection with fallback blocked. Language-native fallback production use
-  remains blocked.
+- EMSI DM production fallback use is maintainer risk-accepted, but it remains
+  outside external independent reviewer acceptance and must use explicit
+  production fallback opt-in.
 - Benchmark evidence is accepted for this closure by
   `docs/mlkem-benchmark-scope-decision.md`, but that decision does not close
   reviewer gates or approve production fallback.
@@ -177,4 +178,5 @@ behavior, and does not record audit acceptance.
   via Windows GitHub Actions; physical Windows release-device evidence remains
   out of scope for this closure.
 
-Production fallback remains fail-closed.
+Production fallback is maintainer risk-accepted for EMSI DM explicit opt-in.
+Reviewer-controlled audit gates remain open.

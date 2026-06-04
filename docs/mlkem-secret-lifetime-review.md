@@ -2,7 +2,7 @@
 
 Date: 2026-06-05
 Scope: Swift, Kotlin, and managed C# ML-KEM-768 confidentiality fallbacks
-Evidence commit: 2fe24a4ae0df2b6f55de564583c8e268bb1d209d
+Evidence commit: c62b1f3c0f83d869182d1555a0fb8e6900f7524e
 
 This document records how secret material is created, copied, returned, and
 exposed by the language-native fallback APIs. It does not approve production
@@ -73,8 +73,9 @@ the benchmark sentinel JSON allowlist.
 - Evidence: secret material is copied through managed arrays/Data and returned
   to callers. Local key-generation/import seed copies and encapsulation coin
   copies are cleared where wrapper ownership is clear.
-- Required closure: reviewer accepts residual risk for production fallback or
-  production fallback remains fail-closed.
+- Required closure: reviewer accepts residual risk for external-audit-approved
+  production fallback. EMSI DM production fallback use relies on maintainer risk
+  acceptance rather than closing this reviewer gate.
 
 ### SL-002: Exportable Private Representation Contains Seed Material
 
@@ -85,7 +86,9 @@ the benchmark sentinel JSON allowlist.
   representations as private-key material that must not be logged and must be
   stored only through caller-approved protected storage/export paths.
 - Required closure: production callers must have key-lifecycle controls accepted
-  by a reviewer, or fallback remains disallowed for production.
+  by a reviewer for external-audit-approved production fallback. EMSI DM
+  production fallback use relies on caller controls documented in the maintainer
+  risk acceptance.
 
 ### SL-003: Swift Seed Import Is Public
 
@@ -96,7 +99,9 @@ the benchmark sentinel JSON allowlist.
   representation as migration-only sensitive input and states that the package
   cannot guarantee zeroization of all Swift `Data` or ARC copies.
 - Required closure: reviewer accepts the migration boundary and caller lifecycle
-  requirements for production fallback, or fallback remains fail-closed.
+  requirements for external-audit-approved production fallback. EMSI DM
+  production fallback use relies on maintainer risk acceptance rather than
+  closing this reviewer gate.
 
 ### SL-004: Secret Material Is Not Intentionally Logged
 
@@ -110,7 +115,9 @@ the benchmark sentinel JSON allowlist.
 - Status: open
 - Reviewer: not assigned
 - Reviewed at: not recorded
-- Evidence commit: 2fe24a4ae0df2b6f55de564583c8e268bb1d209d
+- Evidence commit: c62b1f3c0f83d869182d1555a0fb8e6900f7524e
 
-Production fallback must remain fail-closed until this review is accepted by a
-named reviewer and the external crypto review gate is closed.
+External-audit-approved production fallback remains blocked until this review is
+accepted by a named reviewer and the external crypto review gate is closed. EMSI
+DM production fallback use is separately maintainer risk-accepted in
+`docs/mlkem-production-fallback-risk-acceptance.md`.

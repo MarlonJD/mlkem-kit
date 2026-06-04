@@ -42,6 +42,9 @@ Production provider selection must fail closed unless one of these is true:
 - an audited language-native fallback is explicitly allowed by runtime policy
   and has closed the FIPS map, positive vectors, negative vectors, side-channel
   review, release-device benchmark, and external crypto-review gates.
+- an EMSI DM production fallback is explicitly allowed by runtime policy and
+  uses the maintainer risk-acceptance gate recorded in
+  `docs/mlkem-production-fallback-risk-acceptance.md`.
 
 No shipped client fallback may use C, C++, Rust, assembly, vendored native
 libraries, dynamic native libraries, Metal/GPU acceleration, JNI, NDK, FFI, or
@@ -61,20 +64,21 @@ to ML-KEM confidentiality fallback readiness.
 ## EMSI DM Production Integration
 
 EMSI DM production builds may integrate `mlkem-kit` only through the official
-provider path described above. Production policy defaults keep
-`allowsFallbackInProduction = false`; release checks should treat any
-language-native fallback selection as a blocking failure unless a later audit
-status explicitly approves fallback production use.
+provider path described above or through the explicit maintainer risk-accepted
+fallback path. Production policy defaults keep `allowsFallbackInProduction =
+false`; fallback production use requires an application opt-in plus the
+platform risk-acceptance gate.
 
 This approves the package as a production provider-selection layer for EMSI DM
-when official/native providers are available and complete. It does not approve
-pure Swift, pure Kotlin, or managed C# fallbacks for production use, and it does
-not claim FIPS validation, formal constant-time behavior, or external crypto
-review acceptance.
+when official/native providers are available and complete, and when pure Swift,
+pure Kotlin, or managed C# fallback use is explicitly risk-accepted. It does not
+claim FIPS validation, formal constant-time behavior, or external crypto review
+acceptance.
 
 ## Current Status
 
 The Swift, Kotlin, and managed C# fallbacks have vector tests and policy tests,
-but they do not yet have closed production fallback evidence. Their provider
-metadata therefore reports `fallbackAllowedInProduction = false` by default, and
-production policy returns fail-closed unless a caller supplies closed audit gates.
+but they do not have external independent production fallback acceptance. Their
+provider metadata therefore reports `fallbackAllowedInProduction = false` by
+default, and production policy returns fail-closed unless a caller supplies
+closed audit gates or the explicit EMSI DM maintainer risk-acceptance gate.

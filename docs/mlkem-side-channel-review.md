@@ -2,7 +2,7 @@
 
 Date: 2026-06-05
 Scope: Swift, Kotlin, and managed C# ML-KEM-768 confidentiality fallbacks
-Evidence commit: 2fe24a4ae0df2b6f55de564583c8e268bb1d209d
+Evidence commit: c62b1f3c0f83d869182d1555a0fb8e6900f7524e
 
 This is a source-level side-channel assessment for language-native fallback
 implementations. It is not external crypto-review acceptance, not a FIPS
@@ -62,7 +62,8 @@ guardrail only and is not formal constant-time proof.
 - Production impact: the package cannot claim formal constant-time behavior for
   fallback providers without independent review and target-runtime evidence.
 - Required closure: a named reviewer must accept the residual risk for
-  production fallback, or production fallback remains fail-closed.
+  external-audit-approved production fallback. EMSI DM production fallback use
+  relies on maintainer risk acceptance rather than closing this reviewer gate.
 
 ### SC-002: Decapsulation Validity Result Is Masked
 
@@ -99,7 +100,9 @@ guardrail only and is not formal constant-time proof.
 - Status: open
 - Reviewer: not assigned
 - Reviewed at: not recorded
-- Evidence commit: 2fe24a4ae0df2b6f55de564583c8e268bb1d209d
+- Evidence commit: c62b1f3c0f83d869182d1555a0fb8e6900f7524e
 
-Production fallback must remain fail-closed until this review is accepted by a
-named reviewer and the external crypto review gate is closed.
+External-audit-approved production fallback remains blocked until this review is
+accepted by a named reviewer and the external crypto review gate is closed. EMSI
+DM production fallback use is separately maintainer risk-accepted in
+`docs/mlkem-production-fallback-risk-acceptance.md`.

@@ -76,14 +76,19 @@ data class MLKEMProviderAuditGates(
     val sideChannelReviewPassed: Boolean,
     val releaseDeviceBenchmarksRecorded: Boolean,
     val externalCryptoReviewAccepted: Boolean,
+    val maintainerRiskAcceptedForFallbackProduction: Boolean = false,
 ) {
-    val fallbackProductionReady: Boolean
+    val auditAcceptedForFallbackProduction: Boolean
         get() = fips203CodeMapReviewed &&
             positiveVectorsPassed &&
             negativeVectorsPassed &&
             sideChannelReviewPassed &&
             releaseDeviceBenchmarksRecorded &&
             externalCryptoReviewAccepted
+
+    val fallbackProductionReady: Boolean
+        get() = auditAcceptedForFallbackProduction ||
+            maintainerRiskAcceptedForFallbackProduction
 
     companion object {
         val OPEN = MLKEMProviderAuditGates(
@@ -93,6 +98,7 @@ data class MLKEMProviderAuditGates(
             sideChannelReviewPassed = false,
             releaseDeviceBenchmarksRecorded = false,
             externalCryptoReviewAccepted = false,
+            maintainerRiskAcceptedForFallbackProduction = false,
         )
 
         val CLOSED_FOR_FALLBACK_PRODUCTION = MLKEMProviderAuditGates(
@@ -102,6 +108,17 @@ data class MLKEMProviderAuditGates(
             sideChannelReviewPassed = true,
             releaseDeviceBenchmarksRecorded = true,
             externalCryptoReviewAccepted = true,
+            maintainerRiskAcceptedForFallbackProduction = false,
+        )
+
+        val RISK_ACCEPTED_FOR_EMSI_DM_PRODUCTION_FALLBACK = MLKEMProviderAuditGates(
+            fips203CodeMapReviewed = false,
+            positiveVectorsPassed = true,
+            negativeVectorsPassed = true,
+            sideChannelReviewPassed = false,
+            releaseDeviceBenchmarksRecorded = true,
+            externalCryptoReviewAccepted = false,
+            maintainerRiskAcceptedForFallbackProduction = true,
         )
     }
 }

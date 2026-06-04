@@ -166,6 +166,27 @@ public sealed class MLKemProviderPolicyTests
     }
 
     [Fact]
+    public void ProductionFallbackCanUseExplicitEmsiDmMaintainerRiskAcceptance()
+    {
+        var runtime = new MLKemDotNetRuntimeCapabilities(
+            BuiltInMLKemSupported: false,
+            BuiltInProviderSupportsKeyGeneration: false,
+            BuiltInProviderSupportsEncapsulation: false,
+            BuiltInProviderSupportsDecapsulation: false,
+            ManagedFallbackAvailable: true,
+            RuntimeDescription: ".NET runtime without built-in ML-KEM");
+
+        MLKemProviderSelection selection = MLKemProviderPolicy.SelectDotNetProvider(
+            runtime,
+            MLKemProviderPolicy.Production(
+                allowsFallbackInProduction: true,
+                auditGates: MLKemProviderAuditGates.RiskAcceptedForEmsiDmProductionFallback));
+
+        Assert.Equal("csharp-managed-mlkem768", selection.Provider?.ProviderId);
+        Assert.True(selection.Provider!.FallbackAllowedInProduction);
+    }
+
+    [Fact]
     public void ManagedFallbackMetadataBlocksNativeDependencies()
     {
         MLKemProviderMetadata provider = MLKemProviderMetadata.ManagedCSharpMLKem768();

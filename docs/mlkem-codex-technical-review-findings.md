@@ -3,7 +3,7 @@
 Date: 2026-06-05
 Scope: `packages/mlkem-kit` Swift, Kotlin, and managed C# ML-KEM-768
 confidentiality fallbacks
-Reviewed source revision: `2fe24a4ae0df2b6f55de564583c8e268bb1d209d`
+Reviewed source revision: `c62b1f3c0f83d869182d1555a0fb8e6900f7524e`
 
 This is a Codex technical review artifact. It is not an external independent
 crypto-review sign-off, not FIPS validation, not formal constant-time
@@ -39,7 +39,7 @@ close the `external-crypto-review` gate in `readiness/mlkem-audit-status.json`.
 The reviewed source and local evidence are suitable for reviewer handoff with
 residual risks clearly documented. No reviewed item supports a formal
 constant-time claim, managed zeroization guarantee, FIPS validation claim, or
-production fallback approval.
+external-audit-approved production fallback.
 
 Recommended gate handling:
 
@@ -51,9 +51,9 @@ Recommended gate handling:
   managed secret-lifetime residual risk and caller lifecycle controls.
 - Keep `external-crypto-review` open until an independent external reviewer
   records findings and an acceptance decision.
-- Keep `productionFallbackStatus` as `fail-closed` for language-native
-  fallback approval. EMSI DM production integration may use the package only via
-  official/native provider selection with fallback blocked.
+- Keep reviewer gates open until real reviewer evidence exists. EMSI DM
+  production fallback use is maintainer risk-accepted separately through
+  `docs/mlkem-production-fallback-risk-acceptance.md`.
 
 ## Findings
 
@@ -181,24 +181,24 @@ Recommended gate handling:
 - Residual risk: future diagnostics must preserve this invariant.
 - Gate impact: no independent gate closure.
 
-### PF-001: Production Fallback Remains Fail-Closed
+### PF-001: Production Fallback Requires Explicit Risk Acceptance
 
 - Codex technical disposition: accepted guardrail
 - Severity: informational
 - Evidence: Swift, Kotlin, and C# provider policies require explicit production
-  fallback allowance and closed audit gates before selecting language-native
-  fallbacks for production. `readiness/mlkem-audit-status.json` remains
-  `productionFallbackStatus: "fail-closed"`. EMSI DM production integration is
-  approved only for official/native provider selection with fallback blocked.
+  fallback allowance and either closed audit gates or the EMSI DM maintainer
+  risk-acceptance gate before selecting language-native fallbacks for
+  production. `readiness/mlkem-audit-status.json` records
+  `productionFallbackStatus: "risk-accepted"`.
 - Residual risk: documentation or JSON updates could accidentally overstate
   readiness unless verification continues to require real reviewer evidence.
-- Gate impact: preserve fail-closed fallback status.
+- Gate impact: preserve explicit opt-in and keep reviewer gates open.
 
 ## Hardening Options To Reduce Residual Risk
 
-- Replace production fallback selection with a vetted platform/native provider
-  when available; keep language-native implementations non-production or
-  migration-only unless separately accepted.
+- Prefer a vetted platform/native provider when available; use language-native
+  implementations in production only through closed audit gates or documented
+  maintainer risk acceptance.
 - Keep per-runtime timing-analysis evidence diagnostic for release builds, while preserving
   the explicit non-claim that this is not formal constant-time proof.
 - Gate or de-emphasize exportable private-key representations in production
@@ -215,5 +215,6 @@ Recommended gate handling:
 The current evidence is strong enough to hand to a real reviewer, and the most
 truthful technical disposition is acceptance with documented residual risk for
 managed runtime constant-time limits and secret lifetime. It is not sufficient
-to close the external independent crypto-review gate or approve language-native
-production fallback without a real named external reviewer decision.
+to close the external independent crypto-review gate. EMSI DM production
+fallback use is a separate maintainer risk-acceptance decision, not external
+reviewer acceptance.

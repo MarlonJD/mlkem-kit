@@ -2,7 +2,7 @@
 
 Date: 2026-06-05
 Scope: `packages/mlkem-kit` ML-KEM-768 fallback readiness
-Reviewed source revision: `2fe24a4ae0df2b6f55de564583c8e268bb1d209d`
+Reviewed source revision: `c62b1f3c0f83d869182d1555a0fb8e6900f7524e`
 Reviewer: Codex sub-agent `Carver` (`019e94df-3d23-7320-a48b-e958faa1eb40`)
 Review type: internal AI review for handoff quality
 
@@ -14,15 +14,15 @@ misrepresenting it as independent external acceptance.
 
 ## Result
 
-Production fallback approval cannot be recorded from this review alone.
-`readiness/mlkem-audit-status.json` must keep `productionFallbackStatus` as
-`fail-closed`, and reviewer-controlled gates must remain open until real
-external acceptance is recorded or the project explicitly defines a different
-fallback production approval policy outside this audit gate.
+Production fallback approval could not be recorded from this internal AI review
+alone. Reviewer-controlled gates must remain open until real external acceptance
+is recorded.
 
-The separate EMSI DM production integration decision in
-`docs/mlkem-emsi-dm-production-readiness.md` is limited to official/native
-provider selection with language-native fallback blocked by default.
+The later EMSI DM production integration decision in
+`docs/mlkem-emsi-dm-production-readiness.md` and
+`docs/mlkem-production-fallback-risk-acceptance.md` records maintainer risk
+acceptance for explicit production fallback use. That decision is not external
+independent crypto-review acceptance.
 
 ## Findings
 
@@ -41,8 +41,8 @@ provider selection with language-native fallback blocked by default.
 
 The packet is ready for human or external reviewer handoff: scope, evidence
 links, review questions, blockers, benchmark limits, and non-claims are stated.
-The packet should not be treated as fallback-production-approved until the audit
-status records real gate closure evidence.
+The packet should not be treated as external-audit-approved fallback evidence
+until the audit status records real gate closure evidence.
 
 ## Commands Run By Internal AI Reviewer
 
@@ -60,7 +60,7 @@ python3 -m json.tool readiness/mlkem-audit-status.json
 Observed results:
 
 - Working tree clean at detached `HEAD`.
-- `HEAD` was `2fe24a4ae0df2b6f55de564583c8e268bb1d209d`.
+- `HEAD` was `c62b1f3c0f83d869182d1555a0fb8e6900f7524e`.
 - `tools/verify_audit_status.py`: `audit status ok`.
 - `tools/check_secret_logging.py`: `secret logging ok`.
 - `tools/check_side_channel_source.py`: `side-channel source guardrails ok`.

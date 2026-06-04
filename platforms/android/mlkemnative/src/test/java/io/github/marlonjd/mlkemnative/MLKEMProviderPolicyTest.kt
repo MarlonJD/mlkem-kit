@@ -197,6 +197,29 @@ class MLKEMProviderPolicyTest {
     }
 
     @Test
+    fun productionFallbackCanUseExplicitEmsiDmMaintainerRiskAcceptance() {
+        val runtime = MLKEMAndroidRuntimeCapabilities(
+            officialAppFacingMLKEMAvailable = false,
+            officialProviderSupportsKeyGeneration = false,
+            officialProviderSupportsEncapsulation = false,
+            officialProviderSupportsDecapsulation = false,
+            keyStoreHardwareBackedStorageAvailable = false,
+            pureKotlinFallbackAvailable = true,
+        )
+
+        val selection = MLKEMProviderPolicy.selectAndroidProvider(
+            runtime = runtime,
+            policy = MLKEMProviderPolicy.production(
+                allowsFallbackInProduction = true,
+                auditGates = MLKEMProviderAuditGates.RISK_ACCEPTED_FOR_EMSI_DM_PRODUCTION_FALLBACK,
+            ),
+        )
+
+        assertEquals("kotlin-pure-mlkem768", selection.provider?.providerId)
+        assertTrue(selection.provider!!.fallbackAllowedInProduction)
+    }
+
+    @Test
     fun pureKotlinMetadataBlocksNativeFallbacks() {
         val provider = MLKEMProviderMetadata.pureKotlinMLKEM768()
 

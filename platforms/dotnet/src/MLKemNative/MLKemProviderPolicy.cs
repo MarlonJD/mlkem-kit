@@ -76,6 +76,8 @@ public sealed record MLKemProviderAuditGates(
     bool ReleaseDeviceBenchmarksRecorded,
     bool ExternalCryptoReviewAccepted)
 {
+    public bool MaintainerRiskAcceptedForFallbackProduction { get; init; }
+
     public static MLKemProviderAuditGates Open { get; } = new(
         Fips203CodeMapReviewed: false,
         PositiveVectorsPassed: false,
@@ -92,13 +94,26 @@ public sealed record MLKemProviderAuditGates(
         ReleaseDeviceBenchmarksRecorded: true,
         ExternalCryptoReviewAccepted: true);
 
-    public bool FallbackProductionReady =>
+    public static MLKemProviderAuditGates RiskAcceptedForEmsiDmProductionFallback { get; } =
+        Open with
+        {
+            PositiveVectorsPassed = true,
+            NegativeVectorsPassed = true,
+            ReleaseDeviceBenchmarksRecorded = true,
+            MaintainerRiskAcceptedForFallbackProduction = true,
+        };
+
+    public bool AuditAcceptedForFallbackProduction =>
         Fips203CodeMapReviewed &&
         PositiveVectorsPassed &&
         NegativeVectorsPassed &&
         SideChannelReviewPassed &&
         ReleaseDeviceBenchmarksRecorded &&
         ExternalCryptoReviewAccepted;
+
+    public bool FallbackProductionReady =>
+        AuditAcceptedForFallbackProduction ||
+        MaintainerRiskAcceptedForFallbackProduction;
 }
 
 public sealed record MLKemDotNetRuntimeCapabilities(

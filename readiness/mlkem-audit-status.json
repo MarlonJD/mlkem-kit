@@ -1,8 +1,30 @@
 {
   "schemaVersion": 1,
   "packageScope": "ML-KEM-768 confidentiality fallback readiness",
-  "sourceCommit": "2fe24a4ae0df2b6f55de564583c8e268bb1d209d",
-  "productionFallbackStatus": "fail-closed",
+  "sourceCommit": "c62b1f3c0f83d869182d1555a0fb8e6900f7524e",
+  "productionFallbackStatus": "risk-accepted",
+  "productionFallbackRiskAcceptance": {
+    "status": "accepted",
+    "decisionOwner": "mlkem-kit maintainer",
+    "acceptedAt": "2026-06-05",
+    "scope": "EMSI DM production use of pure Swift, pure Kotlin, and managed C# ML-KEM-768 fallbacks when an official or native platform provider is unavailable.",
+    "evidence": [
+      "docs/mlkem-production-fallback-risk-acceptance.md",
+      "docs/mlkem-emsi-dm-production-readiness.md",
+      "docs/mlkem-readiness-evidence.md",
+      "docs/mlkem-internal-ai-review.md"
+    ],
+    "constraints": [
+      "Production fallback selection requires explicit application opt-in.",
+      "Production fallback selection must use the EMSI DM maintainer risk-acceptance gate.",
+      "Official or native platform providers remain preferred when complete and protocol-compatible."
+    ],
+    "nonClaims": [
+      "No FIPS validation is claimed.",
+      "No formal constant-time proof is claimed.",
+      "No external independent crypto-review acceptance is claimed."
+    ]
+  },
   "gates": [
     {
       "id": "fips203-code-map-review",

@@ -117,7 +117,7 @@ public struct MLKEMProviderMetadata: Equatable, Sendable {
     }
 }
 
-/// Audit gates that must close before a pure Swift fallback is production-selectable.
+/// Evidence gates that control whether a pure Swift fallback is production-selectable.
 public struct MLKEMProviderAuditGates: Equatable, Sendable {
     public let fips203CodeMapReviewed: Bool
     public let positiveVectorsPassed: Bool
@@ -125,19 +125,22 @@ public struct MLKEMProviderAuditGates: Equatable, Sendable {
     public let sideChannelReviewPassed: Bool
     public let releaseDeviceBenchmarksRecorded: Bool
     public let externalCryptoReviewAccepted: Bool
+    public let maintainerRiskAcceptedForFallbackProduction: Bool
 
     public init(fips203CodeMapReviewed: Bool,
                 positiveVectorsPassed: Bool,
                 negativeVectorsPassed: Bool,
                 sideChannelReviewPassed: Bool,
                 releaseDeviceBenchmarksRecorded: Bool,
-                externalCryptoReviewAccepted: Bool) {
+                externalCryptoReviewAccepted: Bool,
+                maintainerRiskAcceptedForFallbackProduction: Bool = false) {
         self.fips203CodeMapReviewed = fips203CodeMapReviewed
         self.positiveVectorsPassed = positiveVectorsPassed
         self.negativeVectorsPassed = negativeVectorsPassed
         self.sideChannelReviewPassed = sideChannelReviewPassed
         self.releaseDeviceBenchmarksRecorded = releaseDeviceBenchmarksRecorded
         self.externalCryptoReviewAccepted = externalCryptoReviewAccepted
+        self.maintainerRiskAcceptedForFallbackProduction = maintainerRiskAcceptedForFallbackProduction
     }
 
     public static let open = MLKEMProviderAuditGates(
@@ -146,7 +149,8 @@ public struct MLKEMProviderAuditGates: Equatable, Sendable {
         negativeVectorsPassed: false,
         sideChannelReviewPassed: false,
         releaseDeviceBenchmarksRecorded: false,
-        externalCryptoReviewAccepted: false
+        externalCryptoReviewAccepted: false,
+        maintainerRiskAcceptedForFallbackProduction: false
     )
 
     public static let closedForFallbackProduction = MLKEMProviderAuditGates(
@@ -155,16 +159,32 @@ public struct MLKEMProviderAuditGates: Equatable, Sendable {
         negativeVectorsPassed: true,
         sideChannelReviewPassed: true,
         releaseDeviceBenchmarksRecorded: true,
-        externalCryptoReviewAccepted: true
+        externalCryptoReviewAccepted: true,
+        maintainerRiskAcceptedForFallbackProduction: false
     )
 
-    public var fallbackProductionReady: Bool {
+    public static let riskAcceptedForEMSIDMProductionFallback = MLKEMProviderAuditGates(
+        fips203CodeMapReviewed: false,
+        positiveVectorsPassed: true,
+        negativeVectorsPassed: true,
+        sideChannelReviewPassed: false,
+        releaseDeviceBenchmarksRecorded: true,
+        externalCryptoReviewAccepted: false,
+        maintainerRiskAcceptedForFallbackProduction: true
+    )
+
+    public var auditAcceptedForFallbackProduction: Bool {
         fips203CodeMapReviewed &&
             positiveVectorsPassed &&
             negativeVectorsPassed &&
             sideChannelReviewPassed &&
             releaseDeviceBenchmarksRecorded &&
             externalCryptoReviewAccepted
+    }
+
+    public var fallbackProductionReady: Bool {
+        auditAcceptedForFallbackProduction ||
+            maintainerRiskAcceptedForFallbackProduction
     }
 }
 

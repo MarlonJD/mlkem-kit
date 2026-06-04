@@ -1,0 +1,17 @@
+{
+  "absoluteDeltaP50Ms" : 0.0009580000000000144,
+  "claimLimits" : "Timing sanity evidence only; not formal constant-time proof.",
+  "configuration" : "release",
+  "device" : "local macOS host",
+  "measuredAt" : "2026-06-04T22:38:40Z",
+  "notes" : "Valid ciphertext and single-byte-tampered ciphertext decapsulation p50 timing sanity on local macOS Release build.",
+  "os" : "Version 26.5.1 (Build 25F80)",
+  "platform" : "macOS",
+  "ratioP50" : 0.99749569327209364,
+  "sampleCount" : 200,
+  "schemaVersion" : 1,
+  "sourceRevision" : "package-local dirty worktree",
+  "status" : "complete",
+  "tamperedDecapsulationP50Ms" : 0.38158300000000001,
+  "validDecapsulationP50Ms" : 0.38254100000000002
+}

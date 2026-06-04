@@ -116,14 +116,33 @@ public static class MLKemNative768
 
         public PublicKey PublicKey { get; }
 
+        /// <summary>
+        /// Exportable private-key representation: KMLK1 || seed64 || publicKey1184.
+        /// The seed portion can recreate the private key. Treat returned arrays as secret
+        /// material; do not log them; store them only in caller-approved protected storage;
+        /// clear caller-owned mutable copies when no longer needed.
+        /// </summary>
         public byte[] Representation => Copy(_representationBytes);
 
         public static PrivateKey Generate()
         {
             byte[] seed = RandomBytes(KeypairSeedBytes);
-            return FromSeed(seed);
+            try
+            {
+                return FromSeed(seed);
+            }
+            finally
+            {
+                Array.Clear(seed);
+            }
         }
 
+        /// <summary>
+        /// Exportable private-key representation: KMLK1 || seed64 || publicKey1184.
+        /// The seed portion can recreate the private key. Treat returned arrays as secret
+        /// material; do not log them; store them only in caller-approved protected storage;
+        /// clear caller-owned mutable copies when no longer needed.
+        /// </summary>
         public static PrivateKey FromRepresentation(byte[] representation)
         {
             ArgumentNullException.ThrowIfNull(representation);
@@ -135,15 +154,22 @@ public static class MLKemNative768
             int seedStart = MagicBytes.Length;
             int publicKeyStart = seedStart + KeypairSeedBytes;
             byte[] seed = Slice(representation, seedStart, publicKeyStart);
-            byte[] expectedPublicKey = Slice(representation, publicKeyStart, PrivateKeyRepresentationBytes);
-            PrivateKey generated = FromSeed(seed);
-
-            if (!PureCSharpMLKEM768.ConstantTimeCompare(generated.PublicKey.RawRepresentation, expectedPublicKey))
+            try
             {
-                throw new MLKemException.InvalidPrivateKeyRepresentation();
-            }
+                byte[] expectedPublicKey = Slice(representation, publicKeyStart, PrivateKeyRepresentationBytes);
+                PrivateKey generated = FromSeed(seed);
 
-            return generated;
+                if (!PureCSharpMLKEM768.ConstantTimeCompare(generated.PublicKey.RawRepresentation, expectedPublicKey))
+                {
+                    throw new MLKemException.InvalidPrivateKeyRepresentation();
+                }
+
+                return generated;
+            }
+            finally
+            {
+                Array.Clear(seed);
+            }
         }
 
         internal static PrivateKey FromSeedForTesting(byte[] seed)
@@ -218,7 +244,14 @@ public static class MLKemNative768
         public Encapsulation Encapsulate()
         {
             byte[] coins = RandomBytes(EncapsulationSeedBytes);
-            return EncapsulateDerand(coins);
+            try
+            {
+                return EncapsulateDerand(coins);
+            }
+            finally
+            {
+                Array.Clear(coins);
+            }
         }
 
         internal Encapsulation EncapsulateDerand(byte[] coins)
@@ -229,9 +262,17 @@ public static class MLKemNative768
                 throw new MLKemException.OperationFailed("Invalid ML-KEM-768 encapsulation seed");
             }
 
-            (byte[] ciphertext, byte[] sharedSecret) =
-                PureCSharpMLKEM768.EncapsulateDerand(_rawRepresentationBytes, Copy(coins));
-            return new Encapsulation(ciphertext, sharedSecret);
+            byte[] localCoins = Copy(coins);
+            try
+            {
+                (byte[] ciphertext, byte[] sharedSecret) =
+                    PureCSharpMLKEM768.EncapsulateDerand(_rawRepresentationBytes, localCoins);
+                return new Encapsulation(ciphertext, sharedSecret);
+            }
+            finally
+            {
+                Array.Clear(localCoins);
+            }
         }
     }
 
@@ -385,7 +426,7 @@ public static class MLKemNative768
         return publicKey;
     }
 
-    public static IncrementalEncapsulationPart1 EncapsulatePart1(byte[] header, byte[]? randomness = null)
+    public static IncrementalEncapsulationPart1 EncapsulatePart1(byte[] header)
     {
         ArgumentNullException.ThrowIfNull(header);
         if (header.Length != IncrementalHeaderBytes)
@@ -393,19 +434,50 @@ public static class MLKemNative768
             throw new MLKemException.InvalidIncrementalHeader();
         }
 
-        byte[] coins = randomness is null ? RandomBytes(EncapsulationSeedBytes) : Copy(randomness);
-        if (coins.Length != EncapsulationSeedBytes)
+        byte[] coins = RandomBytes(EncapsulationSeedBytes);
+        try
+        {
+            return EncapsulatePart1Derand(header, coins);
+        }
+        finally
+        {
+            Array.Clear(coins);
+        }
+    }
+
+    internal static IncrementalEncapsulationPart1 EncapsulatePart1DerandForTesting(byte[] header, byte[] randomness)
+    {
+        ArgumentNullException.ThrowIfNull(header);
+        ArgumentNullException.ThrowIfNull(randomness);
+        if (header.Length != IncrementalHeaderBytes)
+        {
+            throw new MLKemException.InvalidIncrementalHeader();
+        }
+        if (randomness.Length != EncapsulationSeedBytes)
         {
             throw new MLKemException.OperationFailed("Invalid ML-KEM-768 encapsulation randomness");
         }
 
-        PureCSharpMLKEM768.IncrementalEncapsulationResult output =
-            PureCSharpMLKEM768.EncapsulatePart1Derand(Copy(header), coins);
+        return EncapsulatePart1Derand(header, randomness);
+    }
 
-        return new IncrementalEncapsulationPart1(
-            output.EncapsulationSecret,
-            output.CiphertextPart1,
-            output.SharedSecret);
+    private static IncrementalEncapsulationPart1 EncapsulatePart1Derand(byte[] header, byte[] randomness)
+    {
+        byte[] coins = Copy(randomness);
+        try
+        {
+            PureCSharpMLKEM768.IncrementalEncapsulationResult output =
+                PureCSharpMLKEM768.EncapsulatePart1Derand(Copy(header), coins);
+
+            return new IncrementalEncapsulationPart1(
+                output.EncapsulationSecret,
+                output.CiphertextPart1,
+                output.SharedSecret);
+        }
+        finally
+        {
+            Array.Clear(coins);
+        }
     }
 
     public static byte[] EncapsulatePart2(

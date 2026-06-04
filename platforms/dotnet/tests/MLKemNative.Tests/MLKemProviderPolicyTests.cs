@@ -112,6 +112,38 @@ public sealed class MLKemProviderPolicyTests
     }
 
     [Fact]
+    public void ProductionFallbackRequiresBothPolicyAllowanceAndClosedAuditGates()
+    {
+        var runtime = new MLKemDotNetRuntimeCapabilities(
+            BuiltInMLKemSupported: false,
+            BuiltInProviderSupportsKeyGeneration: false,
+            BuiltInProviderSupportsEncapsulation: false,
+            BuiltInProviderSupportsDecapsulation: false,
+            ManagedFallbackAvailable: true,
+            RuntimeDescription: ".NET runtime without built-in ML-KEM");
+        (MLKemProviderPolicy Policy, MLKemProviderFailureReason ExpectedFailure)[] cases =
+        {
+            (
+                MLKemProviderPolicy.Production(),
+                MLKemProviderFailureReason.FallbackDisallowedInProduction),
+            (
+                MLKemProviderPolicy.Production(allowsFallbackInProduction: true),
+                MLKemProviderFailureReason.FallbackAuditIncomplete),
+            (
+                MLKemProviderPolicy.Production(auditGates: MLKemProviderAuditGates.ClosedForFallbackProduction),
+                MLKemProviderFailureReason.FallbackDisallowedInProduction),
+        };
+
+        foreach ((MLKemProviderPolicy policy, MLKemProviderFailureReason expectedFailure) in cases)
+        {
+            MLKemProviderSelection selection = MLKemProviderPolicy.SelectDotNetProvider(runtime, policy);
+
+            Assert.Null(selection.Provider);
+            Assert.Equal(expectedFailure, selection.FailureReason);
+        }
+    }
+
+    [Fact]
     public void AuditedManagedFallbackRequiresPolicyAllowanceInProduction()
     {
         var runtime = new MLKemDotNetRuntimeCapabilities(

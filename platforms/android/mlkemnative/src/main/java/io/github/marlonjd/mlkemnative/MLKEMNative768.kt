@@ -73,6 +73,12 @@ object MLKEMNative768 {
         private val representationBytes: ByteArray,
         val publicKey: PublicKey,
     ) {
+        /**
+         * Exportable private-key representation: KMLK1 || seed64 || publicKey1184.
+         * The seed portion can recreate the private key. Treat returned arrays as secret
+         * material; do not log them; store them only in caller-approved protected storage;
+         * clear caller-owned mutable copies when no longer needed.
+         */
         val representation: ByteArray
             get() = representationBytes.copyOf()
 
@@ -92,9 +98,19 @@ object MLKEMNative768 {
         companion object {
             fun generate(): PrivateKey {
                 val seed = randomBytes(KEYPAIR_SEED_BYTES)
-                return fromSeed(seed)
+                try {
+                    return fromSeed(seed)
+                } finally {
+                    seed.fill(0)
+                }
             }
 
+            /**
+             * Exportable private-key representation: KMLK1 || seed64 || publicKey1184.
+             * The seed portion can recreate the private key. Treat returned arrays as secret
+             * material; do not log them; store them only in caller-approved protected storage;
+             * clear caller-owned mutable copies when no longer needed.
+             */
             fun fromRepresentation(representation: ByteArray): PrivateKey {
                 if (representation.size != PRIVATE_KEY_REPRESENTATION_BYTES) {
                     throw MLKEMException.InvalidPrivateKeyRepresentation()
@@ -111,13 +127,17 @@ object MLKEMNative768 {
                     publicKeyStart,
                     PRIVATE_KEY_REPRESENTATION_BYTES,
                 )
-                val generated = deriveKeypair(seed)
+                try {
+                    val generated = deriveKeypair(seed)
 
-                if (!generated.publicKey.contentEquals(expectedPublicKey)) {
-                    throw MLKEMException.InvalidPrivateKeyRepresentation()
+                    if (!generated.publicKey.contentEquals(expectedPublicKey)) {
+                        throw MLKEMException.InvalidPrivateKeyRepresentation()
+                    }
+
+                    return buildPrivateKey(seed, generated.publicKey, generated.secretKey)
+                } finally {
+                    seed.fill(0)
                 }
-
-                return buildPrivateKey(seed, generated.publicKey, generated.secretKey)
             }
 
             internal fun fromSeedForTesting(seed: ByteArray): PrivateKey {
@@ -171,7 +191,11 @@ object MLKEMNative768 {
 
         fun encapsulate(): Encapsulation {
             val coins = randomBytes(ENCAPSULATION_SEED_BYTES)
-            return encapsulateDerand(coins)
+            try {
+                return encapsulateDerand(coins)
+            } finally {
+                coins.fill(0)
+            }
         }
 
         internal fun encapsulateDerand(coins: ByteArray): Encapsulation {
@@ -179,8 +203,13 @@ object MLKEMNative768 {
                 throw MLKEMException.OperationFailed("Invalid ML-KEM-768 encapsulation seed")
             }
 
-            val output = PureKotlinMLKEM768.encapsulateDerand(rawRepresentationBytes, coins.copyOf())
-            return Encapsulation(output.ciphertext, output.sharedSecret)
+            val localCoins = coins.copyOf()
+            try {
+                val output = PureKotlinMLKEM768.encapsulateDerand(rawRepresentationBytes, localCoins)
+                return Encapsulation(output.ciphertext, output.sharedSecret)
+            } finally {
+                localCoins.fill(0)
+            }
         }
     }
 
@@ -317,26 +346,49 @@ object MLKEMNative768 {
         return publicKey
     }
 
-    fun encapsulatePart1(
-        header: ByteArray,
-        randomness: ByteArray? = null,
-    ): IncrementalEncapsulationPart1 {
+    fun encapsulatePart1(header: ByteArray): IncrementalEncapsulationPart1 {
         if (header.size != INCREMENTAL_HEADER_BYTES) {
             throw MLKEMException.InvalidIncrementalHeader()
         }
 
-        val coins = randomness?.copyOf() ?: randomBytes(ENCAPSULATION_SEED_BYTES)
-        if (coins.size != ENCAPSULATION_SEED_BYTES) {
+        val coins = randomBytes(ENCAPSULATION_SEED_BYTES)
+        try {
+            return encapsulatePart1Derand(header, coins)
+        } finally {
+            coins.fill(0)
+        }
+    }
+
+    @JvmSynthetic
+    internal fun encapsulatePart1DerandForTesting(
+        header: ByteArray,
+        randomness: ByteArray,
+    ): IncrementalEncapsulationPart1 {
+        if (header.size != INCREMENTAL_HEADER_BYTES) {
+            throw MLKEMException.InvalidIncrementalHeader()
+        }
+        if (randomness.size != ENCAPSULATION_SEED_BYTES) {
             throw MLKEMException.OperationFailed("Invalid ML-KEM-768 encapsulation randomness")
         }
 
-        val output = PureKotlinMLKEM768.encapsulatePart1Derand(header.copyOf(), coins)
+        return encapsulatePart1Derand(header, randomness)
+    }
 
-        return IncrementalEncapsulationPart1(
-            encapsulationSecretBytes = output.encapsulationSecret,
-            ciphertextPart1Bytes = output.ciphertextPart1,
-            sharedSecretBytes = output.sharedSecret,
-        )
+    private fun encapsulatePart1Derand(
+        header: ByteArray,
+        coins: ByteArray,
+    ): IncrementalEncapsulationPart1 {
+        val localCoins = coins.copyOf()
+        try {
+            val output = PureKotlinMLKEM768.encapsulatePart1Derand(header.copyOf(), localCoins)
+            return IncrementalEncapsulationPart1(
+                encapsulationSecretBytes = output.encapsulationSecret,
+                ciphertextPart1Bytes = output.ciphertextPart1,
+                sharedSecretBytes = output.sharedSecret,
+            )
+        } finally {
+            localCoins.fill(0)
+        }
     }
 
     fun encapsulatePart2(

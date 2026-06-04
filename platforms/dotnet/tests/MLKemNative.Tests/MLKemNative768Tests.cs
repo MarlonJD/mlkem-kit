@@ -86,7 +86,7 @@ public sealed class MLKemNative768Tests
             incrementalKey.Header,
             incrementalKey.EncapsulationKeyVector);
         MLKemNative768.IncrementalEncapsulationPart1 part1 =
-            MLKemNative768.EncapsulatePart1(incrementalKey.Header, coins);
+            MLKemNative768.EncapsulatePart1DerandForTesting(incrementalKey.Header, coins);
         byte[] part2 = MLKemNative768.EncapsulatePart2(
             part1.EncapsulationSecret,
             incrementalKey.Header,
@@ -101,6 +101,38 @@ public sealed class MLKemNative768Tests
         Assert.Equal(full.Ciphertext, Concat(part1.CiphertextPart1, part2));
         Assert.Equal(full.SharedSecret, part1.SharedSecret);
         Assert.Equal(full.SharedSecret, privateKey.DecapsulateParts(part1.CiphertextPart1, part2));
+    }
+
+    [Fact]
+    public void ProductionEncapsulatePart1DoesNotExposeCallerSuppliedRandomness()
+    {
+        System.Reflection.MethodInfo method = Assert.Single(
+            typeof(MLKemNative768)
+                .GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static),
+            method => method.Name == nameof(MLKemNative768.EncapsulatePart1));
+
+        System.Reflection.ParameterInfo parameter = Assert.Single(method.GetParameters());
+        Assert.Equal(typeof(byte[]), parameter.ParameterType);
+        Assert.False(parameter.HasDefaultValue);
+    }
+
+    [Fact]
+    public void ProductionIncrementalPart1RoundTripsWithInternalRandomness()
+    {
+        MLKemNative768.PrivateKey privateKey = MLKemNative768.PrivateKey.FromSeedForTesting(Hex(TestVector.Seed));
+        MLKemNative768.IncrementalPublicKey incrementalKey =
+            MLKemNative768.PublicKeyToIncremental(privateKey.PublicKey);
+
+        MLKemNative768.IncrementalEncapsulationPart1 part1 =
+            MLKemNative768.EncapsulatePart1(incrementalKey.Header);
+        byte[] part2 = MLKemNative768.EncapsulatePart2(
+            part1.EncapsulationSecret,
+            incrementalKey.Header,
+            incrementalKey.EncapsulationKeyVector);
+
+        Assert.Equal(MLKemNative768.CiphertextPart1Bytes, part1.CiphertextPart1.Length);
+        Assert.Equal(MLKemNative768.CiphertextPart2Bytes, part2.Length);
+        Assert.Equal(part1.SharedSecret, privateKey.DecapsulateParts(part1.CiphertextPart1, part2));
     }
 
     [Fact]
@@ -166,7 +198,7 @@ public sealed class MLKemNative768Tests
         MLKemNative768.IncrementalPublicKey incrementalKey =
             MLKemNative768.PublicKeyToIncremental(privateKey.PublicKey);
         MLKemNative768.IncrementalEncapsulationPart1 part1 =
-            MLKemNative768.EncapsulatePart1(incrementalKey.Header, Hex(TestVector.Coins));
+            MLKemNative768.EncapsulatePart1DerandForTesting(incrementalKey.Header, Hex(TestVector.Coins));
 
         MutateFirstByte(privateKey.Representation);
         MutateFirstByte(privateKey.PublicKey.RawRepresentation);

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mlkem-kit side-channel timing sanity result",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "status",
+    "measuredAt",
+    "platform",
+    "device",
+    "os",
+    "sourceRevision",
+    "configuration",
+    "sampleCount",
+    "validDecapsulationP50Ms",
+    "tamperedDecapsulationP50Ms",
+    "absoluteDeltaP50Ms",
+    "ratioP50",
+    "notes",
+    "claimLimits"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "enum": ["complete"] },
+    "measuredAt": { "type": "string", "format": "date-time" },
+    "platform": { "const": "macOS" },
+    "device": { "type": "string", "minLength": 1 },
+    "os": { "type": "string", "minLength": 1 },
+    "sourceRevision": { "type": "string", "minLength": 1 },
+    "configuration": { "const": "release" },
+    "sampleCount": { "type": "integer", "minimum": 100 },
+    "validDecapsulationP50Ms": { "type": "number", "minimum": 0 },
+    "tamperedDecapsulationP50Ms": { "type": "number", "minimum": 0 },
+    "absoluteDeltaP50Ms": { "type": "number", "minimum": 0 },
+    "ratioP50": { "type": "number", "minimum": 0 },
+    "notes": { "type": "string", "minLength": 1 },
+    "claimLimits": {
+      "type": "string",
+      "pattern": "not formal constant-time proof"
+    }
+  }
+}

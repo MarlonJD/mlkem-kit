@@ -21,4 +21,8 @@ if rg -n "$forbidden_impl_pattern" $native_hook_paths; then
   exit 1
 fi
 
+"$(dirname "$0")/check_secret_logging.py"
+"$(dirname "$0")/check_side_channel_source.py"
+"$(dirname "$0")/check_entropy_boundary.py"
+
 echo "public scope ok"

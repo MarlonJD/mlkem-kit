@@ -66,7 +66,10 @@ class MLKEMNative768Test {
             incremental.header,
             incremental.encapsulationKeyVector,
         )
-        val part1 = MLKEMNative768.encapsulatePart1(incremental.header, SWIFT_VECTOR_COINS)
+        val part1 = MLKEMNative768.encapsulatePart1DerandForTesting(
+            incremental.header,
+            SWIFT_VECTOR_COINS,
+        )
         val part2 = MLKEMNative768.encapsulatePart2(
             part1.encapsulationSecret,
             incremental.header,
@@ -88,6 +91,37 @@ class MLKEMNative768Test {
         assertArrayEquals(full.sharedSecret, part1.sharedSecret)
         assertArrayEquals(
             full.sharedSecret,
+            MLKEMNative768.decapsulateParts(privateKey, part1.ciphertextPart1, part2),
+        )
+    }
+
+    @Test
+    fun productionEncapsulatePart1DoesNotExposeCallerSuppliedRandomness() {
+        val publicPart1Methods = MLKEMNative768::class.java.methods
+            .filter { method -> method.name == "encapsulatePart1" && !method.isSynthetic }
+
+        assertEquals(1, publicPart1Methods.size)
+        val parameters = publicPart1Methods.single().parameterTypes
+        assertEquals(1, parameters.size)
+        assertEquals(ByteArray::class.java, parameters.single())
+    }
+
+    @Test
+    fun productionIncrementalPart1RoundTripsWithInternalRandomness() {
+        val privateKey = MLKEMNative768.PrivateKey.fromSeedForTesting(VECTOR_SEED)
+        val incremental = MLKEMNative768.publicKeyToIncremental(privateKey.publicKey)
+
+        val part1 = MLKEMNative768.encapsulatePart1(incremental.header)
+        val part2 = MLKEMNative768.encapsulatePart2(
+            part1.encapsulationSecret,
+            incremental.header,
+            incremental.encapsulationKeyVector,
+        )
+
+        assertEquals(MLKEMNative768.CIPHERTEXT_PART1_BYTES, part1.ciphertextPart1.size)
+        assertEquals(MLKEMNative768.CIPHERTEXT_PART2_BYTES, part2.size)
+        assertArrayEquals(
+            part1.sharedSecret,
             MLKEMNative768.decapsulateParts(privateKey, part1.ciphertextPart1, part2),
         )
     }
@@ -129,7 +163,10 @@ class MLKEMNative768Test {
     fun invalidIncrementalInputsAreRejected() {
         val privateKey = MLKEMNative768.PrivateKey.fromSeedForTesting(VECTOR_SEED)
         val incremental = MLKEMNative768.publicKeyToIncremental(privateKey.publicKey)
-        val part1 = MLKEMNative768.encapsulatePart1(incremental.header, SWIFT_VECTOR_COINS)
+        val part1 = MLKEMNative768.encapsulatePart1DerandForTesting(
+            incremental.header,
+            SWIFT_VECTOR_COINS,
+        )
 
         assertThrows<MLKEMException.InvalidIncrementalHeader> {
             MLKEMNative768.publicKeyFromIncremental(

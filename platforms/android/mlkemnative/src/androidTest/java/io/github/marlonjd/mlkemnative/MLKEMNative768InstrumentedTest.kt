@@ -81,7 +81,10 @@ class MLKEMNative768InstrumentedTest {
     @Test
     fun incrementalEncapsulationMatchesNormalDeterministicEncapsulation() {
         val incremental = MLKEMNative768.publicKeyToIncremental(VECTOR_PUBLIC_KEY)
-        val part1 = MLKEMNative768.encapsulatePart1(incremental.header, VECTOR_COINS)
+        val part1 = MLKEMNative768.encapsulatePart1DerandForTesting(
+            incremental.header,
+            VECTOR_COINS,
+        )
         val part2 = MLKEMNative768.encapsulatePart2(
             part1.encapsSecret,
             incremental.header,
@@ -110,7 +113,10 @@ class MLKEMNative768InstrumentedTest {
     fun incrementalDecapsulatePartsMatchesNormalDecapsulation() {
         val privateKey = MLKEMNative768.PrivateKey.fromSeedForTesting(VECTOR_SEED)
         val incremental = MLKEMNative768.publicKeyToIncremental(privateKey.publicKey)
-        val part1 = MLKEMNative768.encapsulatePart1(incremental.header, VECTOR_COINS)
+        val part1 = MLKEMNative768.encapsulatePart1DerandForTesting(
+            incremental.header,
+            VECTOR_COINS,
+        )
         val part2 = MLKEMNative768.encapsulatePart2(
             part1.encapsulationSecret,
             incremental.header,
@@ -131,7 +137,10 @@ class MLKEMNative768InstrumentedTest {
     fun invalidIncrementalSizesAreRejected() {
         val privateKey = MLKEMNative768.PrivateKey.fromSeedForTesting(VECTOR_SEED)
         val incremental = MLKEMNative768.publicKeyToIncremental(privateKey.publicKey)
-        val part1 = MLKEMNative768.encapsulatePart1(incremental.header, VECTOR_COINS)
+        val part1 = MLKEMNative768.encapsulatePart1DerandForTesting(
+            incremental.header,
+            VECTOR_COINS,
+        )
 
         assertThrows<MLKEMException.InvalidIncrementalHeader> {
             MLKEMNative768.publicKeyFromIncremental(
@@ -148,7 +157,6 @@ class MLKEMNative768InstrumentedTest {
         assertThrows<MLKEMException.InvalidIncrementalHeader> {
             MLKEMNative768.encapsulatePart1(
                 ByteArray(MLKEMNative768.incrementalHeaderBytes - 1),
-                VECTOR_COINS,
             )
         }
         assertThrows<MLKEMException.InvalidIncrementalEncapsulationSecret> {

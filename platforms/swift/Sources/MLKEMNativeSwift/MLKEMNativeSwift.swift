@@ -80,7 +80,11 @@ public enum MLKEMNative768 {
 
         /// Generates a fresh ML-KEM-768 private key using `SecRandomCopyBytes`.
         public static func generate() throws -> PrivateKey {
-            try PrivateKey(seed: randomBytes(count: keypairSeedBytes))
+            var seed = try randomBytes(count: keypairSeedBytes)
+            defer {
+                clear(&seed)
+            }
+            return try PrivateKey(seed: seed)
         }
 
         /// Loads a private key from `KMLK1 || seed64 || publicKey1184`.
@@ -96,17 +100,30 @@ public enum MLKEMNative768 {
 
             let seedStart = Self.magic.count
             let seedEnd = seedStart + keypairSeedBytes
-            let seed = Data(representation[seedStart..<seedEnd])
+            var seed = Data(representation[seedStart..<seedEnd])
+            defer {
+                clear(&seed)
+            }
             let expectedPublicKey = Data(representation[seedEnd...])
             try self.init(seed: seed, expectedPublicKey: expectedPublicKey)
         }
 
         /// Loads a private key from a deterministic keygen seed and expected public key.
         ///
+        /// Migration-only sensitive representation. The seed representation can recreate
+        /// the private key. Production callers must store it as private-key material,
+        /// avoid logging it, restrict export paths, and clear caller-owned mutable copies
+        /// when no longer needed. This package cannot guarantee zeroization of all Swift
+        /// Data or ARC copies.
+        ///
         /// This is useful for migrations from systems that separately expose the
         /// ML-KEM key generation seed and raw public key.
         public init(seedRepresentation: Data, publicKeyRepresentation: Data) throws {
-            try self.init(seed: seedRepresentation, expectedPublicKey: publicKeyRepresentation)
+            var seed = Data(seedRepresentation)
+            defer {
+                clear(&seed)
+            }
+            try self.init(seed: seed, expectedPublicKey: publicKeyRepresentation)
         }
 
         var seedRepresentation: Data {
@@ -114,6 +131,12 @@ public enum MLKEMNative768 {
         }
 
         /// Compact private-key representation: `KMLK1 || seed64 || publicKey1184`.
+        ///
+        /// Migration-only sensitive representation. The seed representation can recreate
+        /// the private key. Production callers must store it as private-key material,
+        /// avoid logging it, restrict export paths, and clear caller-owned mutable copies
+        /// when no longer needed. This package cannot guarantee zeroization of all Swift
+        /// Data or ARC copies.
         public var representation: Data {
             var data = Self.magic
             data.append(seed)
@@ -180,7 +203,11 @@ public enum MLKEMNative768 {
 
         /// Encapsulates to this public key and returns ciphertext plus shared secret.
         public func encapsulate() throws -> (ciphertext: Data, sharedSecret: SymmetricKey) {
-            try encapsulate(seed: randomBytes(count: encapsulationSeedBytes))
+            var seed = try randomBytes(count: encapsulationSeedBytes)
+            defer {
+                clear(&seed)
+            }
+            return try encapsulate(seed: seed)
         }
 
         func encapsulate(seed: Data) throws -> (ciphertext: Data, sharedSecret: SymmetricKey) {
@@ -201,7 +228,11 @@ public enum MLKEMNative768 {
 
     /// Runs the first half of ML-KEM Braid encapsulation using fresh randomness.
     public static func encapsulatePart1(header: Data) throws -> IncrementalEncapsulation {
-        try encapsulatePart1(header: header, seed: randomBytes(count: encapsulationSeedBytes))
+        var seed = try randomBytes(count: encapsulationSeedBytes)
+        defer {
+            clear(&seed)
+        }
+        return try encapsulatePart1(header: header, seed: seed)
     }
 
     static func encapsulatePart1(header: Data, seed: Data) throws -> IncrementalEncapsulation {
@@ -241,10 +272,17 @@ public enum MLKEMNative768 {
 
     private static func randomBytes(count: Int) throws -> Data {
         var bytes = [UInt8](repeating: 0, count: count)
+        defer {
+            bytes.replaceSubrange(bytes.indices, with: repeatElement(0, count: bytes.count))
+        }
         let status = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         guard status == errSecSuccess else {
             throw MLKEMError.randomGenerationFailed
         }
         return Data(bytes)
+    }
+
+    private static func clear(_ data: inout Data) {
+        data.replaceSubrange(data.indices, with: repeatElement(0, count: data.count))
     }
 }

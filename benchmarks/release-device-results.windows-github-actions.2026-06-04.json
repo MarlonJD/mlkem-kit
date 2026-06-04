@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "status": "partial",
+  "results": [
+    {
+      "platform": "dotnet",
+      "device": "GitHub Actions windows-latest",
+      "osOrRuntime": "Microsoft Windows 10.0.26100; .NET 10.0.8",
+      "buildConfiguration": "release",
+      "providerId": "csharp-managed-mlkem768",
+      "keyGenerationP50Ms": 1.0871,
+      "encapsulationP50Ms": 0.3048,
+      "decapsulationP50Ms": 0.3815,
+      "peakAllocationBytes": 16961992,
+      "sampleCount": 200,
+      "measuredAt": "2026-06-04T18:09:18.3014603+00:00"
+    }
+  ]
+}

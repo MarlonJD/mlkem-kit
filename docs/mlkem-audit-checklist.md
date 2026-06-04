@@ -97,6 +97,8 @@ is recorded.
   `benchmarks/release-device-results.macos-apple-silicon.2026-06-04.json`;
   emulator-only Android result in
   `benchmarks/release-device-results.android-emulator.2026-06-04.json`;
+  hosted-CI Windows result in
+  `benchmarks/release-device-results.windows-github-actions.2026-06-04.json`;
   Windows hosted-CI benchmark workflow in
   `.github/workflows/mlkem-dotnet-windows-benchmark.yml`
 

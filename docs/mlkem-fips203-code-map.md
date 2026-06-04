@@ -36,3 +36,14 @@ major FIPS 203 ML-KEM operations.
 - Record any future optimization against this table before merging it.
 - Keep platform provider-policy files out of the primitive map unless they change
   the primitive behavior.
+
+## Review Sign-Off
+
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence commit: not recorded
+
+Production fallback policy must not treat this map as closed until the status is
+`closed`, a named reviewer is recorded, and the evidence commit points to the
+exact source revision reviewed.

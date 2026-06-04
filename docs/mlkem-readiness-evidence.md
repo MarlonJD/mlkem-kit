@@ -30,6 +30,13 @@ blocker for fallback providers.
 | Android | low, mid, and high release devices | keygen, encapsulation, decapsulation, malformed rejection, heap, p50/p95/p99 | Open |
 | Windows | x64 and ARM64 where available | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Open |
 
+## Release-Device Benchmarks
+
+Production fallback remains blocked until release-device benchmark evidence is
+recorded with `status: "complete"` and at least one release-build result for
+each production-supported fallback platform. Do not convert example or partial
+results into production evidence.
+
 ## Production Readiness Decision
 
 The package may be used for local, test, or non-production vector parity work.

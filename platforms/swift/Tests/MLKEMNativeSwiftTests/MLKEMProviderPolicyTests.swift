@@ -138,6 +138,40 @@ struct MLKEMProviderPolicyTests {
         #expect(selection.failureReason == .fallbackAuditIncomplete)
     }
 
+    @Test("Apple production fallback fails closed when one audit gate remains open")
+    func productionFallbackFailsClosedWhenSingleAuditGateOpen() {
+        let runtime = MLKEMAppleRuntimeCapabilities(
+            platform: .macOS,
+            osMajorVersion: 25,
+            sdkExposesCryptoKitMLKEM768: false,
+            sdkExposesCryptoKitXWing: false,
+            secureEnclaveMLKEMAvailable: false,
+            secureEnclaveKeyLifecycleCompatible: false,
+            pureSwiftFallbackAvailable: true
+        )
+
+        let gates = MLKEMProviderAuditGates(
+            fips203CodeMapReviewed: true,
+            positiveVectorsPassed: true,
+            negativeVectorsPassed: true,
+            sideChannelReviewPassed: true,
+            releaseDeviceBenchmarksRecorded: false,
+            externalCryptoReviewAccepted: true
+        )
+
+        let selection = MLKEMProviderPolicy.selectAppleProvider(
+            runtime: runtime,
+            policy: .production(
+                protocolMode: .rawMLKEM768,
+                allowsFallbackInProduction: true,
+                auditGates: gates
+            )
+        )
+
+        #expect(selection.provider == nil)
+        #expect(selection.failureReason == .fallbackAuditIncomplete)
+    }
+
     @Test("Apple production fallback is selected only after all audit gates pass and policy allows it")
     func productionFallbackRequiresClosedAuditGatesAndPolicyAllowance() {
         let runtime = MLKEMAppleRuntimeCapabilities(

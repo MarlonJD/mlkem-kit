@@ -3,21 +3,104 @@
 Date: 2026-06-04
 Scope: Swift, Kotlin, and managed C# ML-KEM-768 fallbacks
 
-Every primitive change must update this checklist or state why no checklist row
-changed.
+Every primitive change must update this checklist or state why no checklist gate
+changed. Every production fallback gate remains open until real review evidence
+is recorded.
 
-| Gate | Evidence required | Status |
-| --- | --- | --- |
-| FIPS 203 map | `docs/mlkem-fips203-code-map.md` maps each major algorithm step to Swift, Kotlin, and C# source functions. | Open |
-| Positive vectors | Shared deterministic keygen, encapsulation, decapsulation, and incremental vectors pass on every platform. | Partial |
-| Negative vectors | Wrong public-key length, wrong ciphertext length, tampered ciphertext, malformed private representation, public-key mismatch, deterministic seed misuse boundary, and incremental reconstruction mismatch are covered. | Partial |
-| Entropy boundary | Test-only deterministic seed APIs are internal/package-private and production APIs use platform RNG. | Partial |
-| Decapsulation failure | Tampered ciphertext returns implicit-rejection fallback secret and never throws distinguishable validity errors after size validation. | Partial |
-| Constant-time review | Secret-dependent branches, secret-dependent indexes, and timing-different error paths are reviewed. | Open |
-| Secret lifetime | Private seed/secret-key storage, copying, zeroization limits, logging, telemetry, and crash-dump exposure are reviewed. | Open |
-| Representation compatibility | Raw public key, ciphertext, shared secret, and incremental split formats are stable across Swift, Kotlin, and C#. | Partial |
-| Release-device benchmarks | p50/p95/p99 latency, allocation/heap behavior, malformed-input rejection time, and timeout budget are recorded on release devices. | Open |
-| External crypto review | Reviewer, date, input packet, findings, and acceptance decision are recorded. | Open |
+## Production Fallback Gates
+
+### FIPS 203 map
+
+- Evidence required: `docs/mlkem-fips203-code-map.md` maps each major algorithm
+  step to Swift, Kotlin, and C# source functions.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
+
+### Positive vectors
+
+- Evidence required: shared deterministic keygen, encapsulation,
+  decapsulation, and incremental vectors pass on every platform.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
+
+### Negative vectors
+
+- Evidence required: wrong public-key length, wrong ciphertext length, tampered
+  ciphertext, malformed private representation, public-key mismatch,
+  deterministic seed misuse boundary, and incremental reconstruction mismatch
+  are covered.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
+
+### Entropy boundary
+
+- Evidence required: test-only deterministic seed APIs are
+  internal/package-private and production APIs use platform RNG.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
+
+### Decapsulation failure
+
+- Evidence required: tampered ciphertext returns implicit-rejection fallback
+  secret and never throws distinguishable validity errors after size validation.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
+
+### Constant-time review
+
+- Evidence required: secret-dependent branches, secret-dependent indexes, and
+  timing-different error paths are reviewed.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
+
+### Secret lifetime
+
+- Evidence required: private seed/secret-key storage, copying, zeroization
+  limits, logging, telemetry, and crash-dump exposure are reviewed.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
+
+### Representation compatibility
+
+- Evidence required: raw public key, ciphertext, shared secret, and incremental
+  split formats are stable across Swift, Kotlin, and C#.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
+
+### Release-device benchmarks
+
+- Evidence required: p50/p95/p99 latency, allocation/heap behavior,
+  malformed-input rejection time, and timeout budget are recorded on release
+  devices.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
+
+### External crypto review
+
+- Evidence required: reviewer, date, input packet, findings, and acceptance
+  decision are recorded.
+- Status: open
+- Reviewer: not assigned
+- Reviewed at: not recorded
+- Evidence: not recorded
 
 ## Side-Channel Review Prompts
 

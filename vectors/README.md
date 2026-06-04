@@ -11,3 +11,9 @@ single generated fixture file directly from this directory.
 
 Production code must not expose deterministic seed APIs. Deterministic seeds are
 test-only vector material.
+
+## Verification
+
+Run `tools/verify_vectors.py` before changing vector files. The script validates
+algorithm labels, seed lengths, shared-secret lengths, full positive vector
+public key/ciphertext byte lengths, and negative-vector result labels.

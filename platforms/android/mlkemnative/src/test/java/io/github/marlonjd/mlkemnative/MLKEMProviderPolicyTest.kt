@@ -89,6 +89,37 @@ class MLKEMProviderPolicyTest {
     }
 
     @Test
+    fun productionFallbackFailsClosedWhenSingleAuditGateIsOpen() {
+        val runtime = MLKEMAndroidRuntimeCapabilities(
+            officialAppFacingMLKEMAvailable = false,
+            officialProviderSupportsKeyGeneration = false,
+            officialProviderSupportsEncapsulation = false,
+            officialProviderSupportsDecapsulation = false,
+            keyStoreHardwareBackedStorageAvailable = false,
+            pureKotlinFallbackAvailable = true,
+        )
+        val gates = MLKEMProviderAuditGates(
+            fips203CodeMapReviewed = true,
+            positiveVectorsPassed = true,
+            negativeVectorsPassed = true,
+            sideChannelReviewPassed = true,
+            releaseDeviceBenchmarksRecorded = false,
+            externalCryptoReviewAccepted = true,
+        )
+
+        val selection = MLKEMProviderPolicy.selectAndroidProvider(
+            runtime = runtime,
+            policy = MLKEMProviderPolicy.production(
+                allowsFallbackInProduction = true,
+                auditGates = gates,
+            ),
+        )
+
+        assertNull(selection.provider)
+        assertEquals(MLKEMProviderFailureReason.FALLBACK_AUDIT_INCOMPLETE, selection.failureReason)
+    }
+
+    @Test
     fun auditedPureKotlinFallbackRequiresPolicyAllowanceInProduction() {
         val runtime = MLKEMAndroidRuntimeCapabilities(
             officialAppFacingMLKEMAvailable = false,

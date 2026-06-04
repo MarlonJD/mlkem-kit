@@ -47,6 +47,13 @@ No shipped client fallback may use C, C++, Rust, assembly, vendored native
 libraries, dynamic native libraries, Metal/GPU acceleration, JNI, NDK, FFI, or
 P/Invoke.
 
+Run `tools/check_public_scope.sh` before release to ensure the public package
+does not gain private references or native fallback implementation hooks.
+Run `tools/verify_vectors.py` before changing shared vector manifests. Release
+device benchmark evidence must conform to
+`benchmarks/release-device-results.schema.json`; the example file records
+missing evidence only and is not production evidence.
+
 ## Current Status
 
 The Swift, Kotlin, and managed C# fallbacks have vector tests and policy tests,

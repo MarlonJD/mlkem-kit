@@ -1,6 +1,10 @@
 # macOS metadata
 .DS_Store
 
+# Python
+__pycache__/
+*.py[cod]
+
 # SwiftPM
 platforms/swift/.build/
 platforms/swift/.swiftpm/

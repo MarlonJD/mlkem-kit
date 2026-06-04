@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mlkem-kit audit gate status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "packageScope", "sourceCommit", "productionFallbackStatus", "gates"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "packageScope": { "const": "ML-KEM-768 confidentiality fallback readiness" },
+    "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "productionFallbackStatus": { "enum": ["fail-closed", "approved"] },
+    "gates": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "reviewer", "reviewedAt", "evidence", "blockers"],
+        "properties": {
+          "id": {
+            "enum": [
+              "fips203-code-map-review",
+              "side-channel-review",
+              "secret-lifetime-review",
+              "external-crypto-review"
+            ]
+          },
+          "status": { "enum": ["open", "closed"] },
+          "reviewer": { "type": "string" },
+          "reviewedAt": { "type": "string" },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "blockers": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

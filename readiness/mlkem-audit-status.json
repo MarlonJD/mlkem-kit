@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "packageScope": "ML-KEM-768 confidentiality fallback readiness",
+  "sourceCommit": "36aa0bf9aae78ba59f9d95541d5e7b31ebfc9de5",
+  "productionFallbackStatus": "fail-closed",
+  "gates": [
+    {
+      "id": "fips203-code-map-review",
+      "status": "open",
+      "reviewer": "",
+      "reviewedAt": "",
+      "evidence": [
+        "docs/mlkem-fips203-code-map.md"
+      ],
+      "blockers": [
+        "FIPS 203 code-map review is not closed."
+      ]
+    },
+    {
+      "id": "side-channel-review",
+      "status": "open",
+      "reviewer": "",
+      "reviewedAt": "",
+      "evidence": [
+        "docs/mlkem-side-channel-review.md"
+      ],
+      "blockers": [
+        "Side-channel review evidence is not complete."
+      ]
+    },
+    {
+      "id": "secret-lifetime-review",
+      "status": "open",
+      "reviewer": "",
+      "reviewedAt": "",
+      "evidence": [
+        "docs/mlkem-secret-lifetime-review.md"
+      ],
+      "blockers": [
+        "Secret lifetime review evidence is not complete."
+      ]
+    },
+    {
+      "id": "external-crypto-review",
+      "status": "open",
+      "reviewer": "",
+      "reviewedAt": "",
+      "evidence": [
+        "docs/mlkem-external-review-packet.md"
+      ],
+      "blockers": [
+        "External crypto review is not closed."
+      ]
+    }
+  ]
+}

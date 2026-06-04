@@ -11,7 +11,12 @@ if [ -n "${MLKEM_KIT_PRIVATE_DENYLIST_REGEX:-}" ]; then
   fi
 fi
 
-if rg -n "$forbidden_impl_pattern" $platform_code_paths; then
+native_hook_paths=$platform_code_paths
+if [ -f readiness/mlkem-audit-status.json ]; then
+  native_hook_paths="$native_hook_paths readiness/mlkem-audit-status.json"
+fi
+
+if rg -n "$forbidden_impl_pattern" $native_hook_paths; then
   echo "forbidden native fallback implementation reference found" >&2
   exit 1
 fi

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "status": "partial",
+  "results": [
+    {
+      "platform": "iOS",
+      "device": "iPhone 17",
+      "osOrRuntime": "iOS 26.5.1",
+      "buildConfiguration": "release",
+      "providerId": "swift-pure-mlkem768",
+      "keyGenerationP50Ms": 10.963542,
+      "encapsulationP50Ms": 12.135209,
+      "decapsulationP50Ms": 15.764082999999999,
+      "peakAllocationBytes": 1393552,
+      "sampleCount": 200,
+      "measuredAt": "2026-06-04T17:46:44Z"
+    }
+  ]
+}

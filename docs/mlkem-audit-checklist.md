@@ -91,7 +91,8 @@ is recorded.
 - Status: open
 - Reviewer: not assigned
 - Reviewed at: not recorded
-- Evidence: not recorded
+- Evidence: partial iOS result in
+  `benchmarks/release-device-results.ios-iphone17.2026-06-04.json`
 
 ### External crypto review
 

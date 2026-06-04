@@ -5,6 +5,10 @@
 platforms/swift/.build/
 platforms/swift/.swiftpm/
 
+# Xcode user state
+**/xcuserdata/
+*.xcuserstate
+
 # Android/Gradle
 platforms/android/.gradle/
 platforms/android/**/build/

@@ -20,12 +20,14 @@ Scope: `mlkem-kit` public package
 
 ## Release-Device Benchmark Matrix
 
-No release-device benchmark results are recorded yet. This is a production
-blocker for fallback providers.
+One iOS release-device benchmark result is recorded as partial evidence in
+`benchmarks/release-device-results.ios-iphone17.2026-06-04.json`. This is still
+a production blocker for fallback providers because the release-device matrix is
+not complete across all supported fallback platforms and required review gates.
 
 | Platform | Required devices | Required operations | Status |
 | --- | --- | --- | --- |
-| iOS | iOS 26 device, older supported iOS fallback device | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Open |
+| iOS | iOS 26 device, older supported iOS fallback device | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Partial |
 | macOS | Apple Silicon macOS 26, older supported macOS fallback host | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Open |
 | Android | low, mid, and high release devices | keygen, encapsulation, decapsulation, malformed rejection, heap, p50/p95/p99 | Open |
 | Windows | x64 and ARM64 where available | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Open |

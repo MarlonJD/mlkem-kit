@@ -5,6 +5,9 @@
 __pycache__/
 *.py[cod]
 
+# Local agent plans
+docs/superpowers/
+
 # SwiftPM
 platforms/swift/.build/
 platforms/swift/.swiftpm/

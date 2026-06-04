@@ -4,6 +4,7 @@
 # SwiftPM
 platforms/swift/.build/
 platforms/swift/.swiftpm/
+benchmarks/**/.build/
 
 # Xcode user state
 **/xcuserdata/
@@ -12,8 +13,12 @@ platforms/swift/.swiftpm/
 # Android/Gradle
 platforms/android/.gradle/
 platforms/android/**/build/
+benchmarks/android/**/.gradle/
+benchmarks/android/**/build/
 
 # .NET
 platforms/dotnet/**/bin/
 platforms/dotnet/**/obj/
 platforms/dotnet/**/TestResults/
+benchmarks/dotnet/**/bin/
+benchmarks/dotnet/**/obj/

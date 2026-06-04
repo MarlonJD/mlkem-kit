@@ -20,24 +20,32 @@ Scope: `mlkem-kit` public package
 
 ## Release-Device Benchmark Matrix
 
-One iOS release-device benchmark result is recorded as partial evidence in
-`benchmarks/release-device-results.ios-iphone17.2026-06-04.json`. This is still
-a production blocker for fallback providers because the release-device matrix is
-not complete across all supported fallback platforms and required review gates.
+One iOS release-device benchmark result, one macOS release-device benchmark
+result, and one Android emulator benchmark result are recorded as partial
+evidence in
+`benchmarks/release-device-results.ios-iphone17.2026-06-04.json` and
+`benchmarks/release-device-results.macos-apple-silicon.2026-06-04.json`, with
+emulator-only Android evidence in
+`benchmarks/release-device-results.android-emulator.2026-06-04.json`. This is
+still a production blocker for fallback providers because the release-device
+matrix is not complete across all supported fallback platforms and required
+review gates.
 
 | Platform | Required devices | Required operations | Status |
 | --- | --- | --- | --- |
 | iOS | iOS 26 device, older supported iOS fallback device | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Partial |
-| macOS | Apple Silicon macOS 26, older supported macOS fallback host | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Open |
-| Android | low, mid, and high release devices | keygen, encapsulation, decapsulation, malformed rejection, heap, p50/p95/p99 | Open |
-| Windows | x64 and ARM64 where available | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Open |
+| macOS | Apple Silicon macOS 26, older supported macOS fallback host | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Partial |
+| Android | low, mid, and high release devices | keygen, encapsulation, decapsulation, malformed rejection, heap, p50/p95/p99 | Partial, emulator only |
+| Windows | x64 and ARM64 where available | keygen, encapsulation, decapsulation, malformed rejection, allocations, p50/p95/p99 | Open; hosted GitHub Actions workflow added |
 
 ## Release-Device Benchmarks
 
 Production fallback remains blocked until release-device benchmark evidence is
 recorded with `status: "complete"` and at least one release-build result for
 each production-supported fallback platform. Do not convert example or partial
-results into production evidence.
+results into production evidence. Emulator benchmark results may support local
+regression checks, and hosted CI benchmark artifacts may support public
+reproducibility checks, but neither satisfies release-device requirements.
 
 ## Production Readiness Decision
 

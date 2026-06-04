@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "status": "partial",
+  "results": [
+    {
+      "platform": "Android",
+      "device": "Android emulator sdk_gphone16k_arm64",
+      "osOrRuntime": "Android 17 (API 37)",
+      "buildConfiguration": "release",
+      "providerId": "kotlin-pure-mlkem768",
+      "keyGenerationP50Ms": 0.562083,
+      "encapsulationP50Ms": 0.443208,
+      "decapsulationP50Ms": 0.293708,
+      "peakAllocationBytes": 156658576,
+      "sampleCount": 200,
+      "measuredAt": "2026-06-04T18:02:27.609657Z"
+    }
+  ]
+}

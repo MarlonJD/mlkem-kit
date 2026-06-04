@@ -92,7 +92,13 @@ is recorded.
 - Reviewer: not assigned
 - Reviewed at: not recorded
 - Evidence: partial iOS result in
-  `benchmarks/release-device-results.ios-iphone17.2026-06-04.json`
+  `benchmarks/release-device-results.ios-iphone17.2026-06-04.json`; partial
+  macOS result in
+  `benchmarks/release-device-results.macos-apple-silicon.2026-06-04.json`;
+  emulator-only Android result in
+  `benchmarks/release-device-results.android-emulator.2026-06-04.json`;
+  Windows hosted-CI benchmark workflow in
+  `.github/workflows/mlkem-dotnet-windows-benchmark.yml`
 
 ### External crypto review
 

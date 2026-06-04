@@ -1,0 +1,43 @@
+name: ML-KEM .NET Windows Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/mlkem-dotnet-windows-benchmark.yml"
+      - "benchmarks/dotnet/**"
+      - "platforms/dotnet/**"
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: Windows managed C# ML-KEM benchmark
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build benchmark
+        run: dotnet build benchmarks/dotnet/MLKemReleaseDeviceBenchmark/MLKemReleaseDeviceBenchmark.csproj --configuration Release
+
+      - name: Run benchmark
+        shell: pwsh
+        env:
+          MLKEM_BENCHMARK_DEVICE: GitHub Actions windows-latest
+        run: |
+          dotnet run --project benchmarks/dotnet/MLKemReleaseDeviceBenchmark/MLKemReleaseDeviceBenchmark.csproj --configuration Release --no-build | Tee-Object -FilePath benchmarks/release-device-results.windows-github-actions.json
+
+      - name: Upload benchmark result
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlkem-dotnet-windows-benchmark
+          path: benchmarks/release-device-results.windows-github-actions.json
+          if-no-files-found: error

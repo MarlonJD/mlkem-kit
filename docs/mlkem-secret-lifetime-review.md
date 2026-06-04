@@ -1,8 +1,9 @@
 # ML-KEM Secret Lifetime Review
 
-Date: 2026-06-04
+Date: 2026-06-05
 Scope: Swift, Kotlin, and managed C# ML-KEM-768 confidentiality fallbacks
-Evidence commit: 4a29d9089f0c535a8ecba31790c8ec5c00fee5bc
+Evidence commit: 625750bb0f53e922d2b8f799e2abed4ffcd1a767 plus
+package-local dirty-worktree hardening evidence observed on 2026-06-05
 
 This document records how secret material is created, copied, returned, and
 exposed by the language-native fallback APIs. It does not approve production
@@ -30,6 +31,17 @@ fallback selection.
 - Existing APIs expose exportable private-key representations. This is useful
   for package parity and migration, but remains a production risk unless the
   caller has key-lifecycle controls.
+- Swift production key generation, representation import, public seed import,
+  encapsulation, and incremental part1 wrappers clear locally owned mutable
+  seed copies after the wrapper has copied or regenerated the retained private
+  key state. `randomBytes` overwrites its local `[UInt8]` source buffer after
+  copying into `Data`; this remains limited by `Data` and array value semantics
+  and does not guarantee zeroization of all copies.
+- Kotlin and C# clear newly created local key-generation seeds, extracted
+  private-representation seeds, encapsulation coin arrays, and internal local
+  copies after use where ownership is clear, but this does not guarantee
+  zeroization of all managed copies, primitive temporaries, returned secrets, or
+  runtime copies.
 
 ## Deterministic Seed Boundaries
 
@@ -47,6 +59,12 @@ encapsulation coins, or incremental encapsulation secrets. Benchmark harnesses
 emit aggregate JSON metrics and may use a local accumulator to prevent dead-code
 elimination, but they do not print secret byte values.
 
+`tools/check_secret_logging.py` now scans primitive and benchmark sources for
+logging APIs combined with sensitive names such as `seed`, `secretKey`,
+`sharedSecret`, `encapsulationSecret`, `coins`, `privateKey`, and
+`representation`. `tools/check_public_scope.sh` runs this checker and preserves
+the benchmark sentinel JSON allowlist.
+
 ## Findings
 
 ### SL-001: Managed Zeroization Is Not Guaranteed
@@ -54,7 +72,8 @@ elimination, but they do not print secret byte values.
 - Severity: medium
 - Status: open
 - Evidence: secret material is copied through managed arrays/Data and returned
-  to callers.
+  to callers. Local key-generation/import seed copies and encapsulation coin
+  copies are cleared where wrapper ownership is clear.
 - Required closure: reviewer accepts residual risk for production fallback or
   production fallback remains fail-closed.
 
@@ -63,7 +82,9 @@ elimination, but they do not print secret byte values.
 - Severity: medium
 - Status: open
 - Evidence: private-key representation APIs carry enough material to recreate
-  the private key.
+  the private key. Public API documentation now labels exportable
+  representations as private-key material that must not be logged and must be
+  stored only through caller-approved protected storage/export paths.
 - Required closure: production callers must have key-lifecycle controls accepted
   by a reviewer, or fallback remains disallowed for production.
 
@@ -72,7 +93,9 @@ elimination, but they do not print secret byte values.
 - Severity: medium
 - Status: open
 - Evidence: Swift `PrivateKey` exposes a public seed representation initializer
-  for migration.
+  for migration. Its documentation now explicitly labels the seed
+  representation as migration-only sensitive input and states that the package
+  cannot guarantee zeroization of all Swift `Data` or ARC copies.
 - Required closure: reviewer accepts the migration boundary and caller lifecycle
   requirements for production fallback, or fallback remains fail-closed.
 
@@ -80,14 +103,16 @@ elimination, but they do not print secret byte values.
 
 - Severity: informational
 - Status: source reviewed
-- Evidence: source scan finds no primitive logging of secret values.
+- Evidence: `tools/check_secret_logging.py` passed and found no primitive or
+  benchmark logging of secret values outside aggregate benchmark JSON sentinels.
 
 ## Sign-Off
 
 - Status: open
 - Reviewer: not assigned
 - Reviewed at: not recorded
-- Evidence commit: 4a29d9089f0c535a8ecba31790c8ec5c00fee5bc
+- Evidence commit: 625750bb0f53e922d2b8f799e2abed4ffcd1a767 plus
+  package-local dirty-worktree hardening evidence observed on 2026-06-05
 
 Production fallback must remain fail-closed until this review is accepted by a
 named reviewer and the external crypto review gate is closed.

@@ -1,0 +1,19 @@
+{
+  "results" : [
+    {
+      "buildConfiguration" : "release",
+      "decapsulationP50Ms" : 0.39095800000000003,
+      "device" : "MacBook Pro (Mac14,7, Apple M2)",
+      "encapsulationP50Ms" : 0.32820899999999997,
+      "keyGenerationP50Ms" : 0.32591700000000001,
+      "measuredAt" : "2026-06-04T21:54:12Z",
+      "osOrRuntime" : "macOS 26.5.1 (25F80)",
+      "peakAllocationBytes" : 376304,
+      "platform" : "macOS",
+      "providerId" : "swift-pure-mlkem768",
+      "sampleCount" : 200
+    }
+  ],
+  "schemaVersion" : 1,
+  "status" : "complete"
+}

@@ -8,12 +8,12 @@
       "osOrRuntime": "Version 26.5.1 (Build 25F80)",
       "buildConfiguration": "release",
       "providerId": "swift-pure-mlkem768",
-      "keyGenerationP50Ms": 0.33724999999999999,
-      "encapsulationP50Ms": 0.33491700000000002,
-      "decapsulationP50Ms": 0.40079199999999998,
-      "peakAllocationBytes": 371696,
+      "keyGenerationP50Ms": 0.39641700000000002,
+      "encapsulationP50Ms": 0.43216700000000002,
+      "decapsulationP50Ms": 0.51241599999999998,
+      "peakAllocationBytes": 376304,
       "sampleCount": 200,
-      "measuredAt": "2026-06-04T18:05:28Z"
+      "measuredAt": "2026-06-04T20:25:16Z"
     }
   ]
 }

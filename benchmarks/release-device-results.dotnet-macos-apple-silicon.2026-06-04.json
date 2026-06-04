@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "status": "partial",
+  "results": [
+    {
+      "platform": "dotnet",
+      "device": "MarlonJD-MacBook-Pro Arm64",
+      "osOrRuntime": "macOS 26.5.1; .NET 10.0.8",
+      "buildConfiguration": "release",
+      "providerId": "csharp-managed-mlkem768",
+      "keyGenerationP50Ms": 0.740458,
+      "encapsulationP50Ms": 0.678709,
+      "decapsulationP50Ms": 0.437292,
+      "peakAllocationBytes": 9041600,
+      "sampleCount": 200,
+      "measuredAt": "2026-06-04T20:24:53.1844110+00:00"
+    }
+  ]
+}

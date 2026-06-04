@@ -14,7 +14,7 @@
         "docs/mlkem-external-review-packet.md"
       ],
       "blockers": [
-        "FIPS 203 code-map review is not closed."
+        "No named reviewer acceptance is recorded for the FIPS 203 code map."
       ]
     },
     {
@@ -26,7 +26,7 @@
         "docs/mlkem-side-channel-review.md"
       ],
       "blockers": [
-        "Side-channel review evidence is not complete."
+        "No named reviewer acceptance is recorded for side-channel residual risk; no formal constant-time claim is recorded."
       ]
     },
     {
@@ -38,7 +38,7 @@
         "docs/mlkem-secret-lifetime-review.md"
       ],
       "blockers": [
-        "Secret lifetime review evidence is not complete."
+        "No named reviewer acceptance is recorded for managed-runtime secret-lifetime residual risk."
       ]
     },
     {
@@ -50,7 +50,7 @@
         "docs/mlkem-external-review-packet.md"
       ],
       "blockers": [
-        "External crypto review is not closed."
+        "No independent external crypto review findings and acceptance decision are recorded."
       ]
     }
   ]

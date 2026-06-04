@@ -35,15 +35,14 @@ major FIPS 203 ML-KEM operations.
 The reviewer must compare each mapped source reference against NIST FIPS 203
 ML-KEM-768 algorithms and confirm that the package implements only ML-KEM
 confidentiality operations. This map is not a FIPS validation claim and does not
-cover signatures, authentication, certificates, envelopes, ratchets, storage,
-backend APIs, UI, or notification behavior.
+cover behavior outside the package's ML-KEM-768 confidentiality primitive scope.
 
 ## Review Sign-Off
 
 - Status: open
 - Reviewer: not assigned
 - Reviewed at: not recorded
-- Evidence commit: 3a93586b2cb633ec8050ecc22b04f7cd42217169
+- Evidence commit: 6a6650beca231a0c6fbc3028a0377c8d0f4de833
 - Evidence packet: docs/mlkem-external-review-packet.md
 
 Production fallback policy must not treat this map as closed until the status is

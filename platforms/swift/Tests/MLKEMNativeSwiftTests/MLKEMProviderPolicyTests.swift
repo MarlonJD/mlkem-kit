@@ -180,7 +180,7 @@ struct MLKEMProviderPolicyTests {
             negativeVectorsPassed: true,
             sideChannelReviewPassed: true,
             releaseDeviceBenchmarksRecorded: false,
-            externalCryptoReviewAccepted: true
+            externalCryptoApprovedForProduction: true
         )
 
         let selection = MLKEMProviderPolicy.selectAppleProvider(
@@ -220,10 +220,22 @@ struct MLKEMProviderPolicyTests {
         #expect(selection.provider?.providerId == "swift-pure-mlkem768")
         #expect(selection.provider?.implementationLanguage == "Swift")
         #expect(selection.provider?.fallbackAllowedInProduction == true)
+        #expect(selection.provider?.fallbackSelectedForExplicitRiskException == false)
+        #expect(selection.provider?.externalCryptoApprovedForProduction == true)
     }
 
-    @Test("Apple production fallback can use explicit EMSI DM maintainer risk acceptance")
-    func productionFallbackAllowsMaintainerRiskAcceptanceWhenPolicyAllowsIt() {
+    @Test("Apple maintainer risk acceptance is not external crypto approval")
+    func maintainerRiskAcceptanceIsNotExternalCryptoApproval() {
+        let gates = MLKEMProviderAuditGates.riskAcceptedForEMSIDMProductionFallback
+
+        #expect(gates.externalCryptoApprovedForProduction == false)
+        #expect(gates.maintainerRiskAcceptedNotCryptoApproved == true)
+        #expect(gates.fallbackProductionReady == false)
+        #expect(gates.fallbackSelectableForExplicitRiskException == true)
+    }
+
+    @Test("Apple production fallback risk exception requires a separate policy flag")
+    func productionFallbackRiskExceptionRequiresSeparatePolicyFlag() {
         let runtime = MLKEMAppleRuntimeCapabilities(
             platform: .macOS,
             osMajorVersion: 25,
@@ -234,7 +246,7 @@ struct MLKEMProviderPolicyTests {
             pureSwiftFallbackAvailable: true
         )
 
-        let selection = MLKEMProviderPolicy.selectAppleProvider(
+        let approvedPathSelection = MLKEMProviderPolicy.selectAppleProvider(
             runtime: runtime,
             policy: .production(
                 protocolMode: .rawMLKEM768,
@@ -243,8 +255,22 @@ struct MLKEMProviderPolicyTests {
             )
         )
 
+        #expect(approvedPathSelection.provider == nil)
+        #expect(approvedPathSelection.failureReason == .fallbackAuditIncomplete)
+
+        let selection = MLKEMProviderPolicy.selectAppleProvider(
+            runtime: runtime,
+            policy: .production(
+                protocolMode: .rawMLKEM768,
+                allowsExplicitRiskExceptionFallbackInProduction: true,
+                auditGates: .riskAcceptedForEMSIDMProductionFallback
+            )
+        )
+
         #expect(selection.provider?.providerId == "swift-pure-mlkem768")
-        #expect(selection.provider?.fallbackAllowedInProduction == true)
+        #expect(selection.provider?.fallbackAllowedInProduction == false)
+        #expect(selection.provider?.fallbackSelectedForExplicitRiskException == true)
+        #expect(selection.provider?.externalCryptoApprovedForProduction == false)
     }
 
     @Test("Swift fallback metadata remains language-native and blocks native dependencies")

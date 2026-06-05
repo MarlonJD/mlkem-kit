@@ -139,9 +139,14 @@ The reviewer output must include:
 
 ## Current Production Decision
 
-Production integration for EMSI DM permits explicit maintainer risk-accepted
-language-native fallback use. `productionFallbackStatus` is `risk-accepted`.
-Do not mark it as `approved` unless every gate in
+Production fallback approval for EMSI DM remains fail-closed. Maintainer
+risk acceptance is recorded only as a separate explicit exception path with
+`maintainerRiskAcceptedNotCryptoApproved: true` and
+`fallbackSelectableForExplicitRiskException: true`. Vera C. Ternell's
+2026-06-05 external E2EE review rejected ML-KEM fallback production approval
+for EMSI.
+
+Do not mark `productionFallbackStatus` as `approved` unless every gate in
 `readiness/mlkem-audit-status.json` is closed by real reviewer evidence and all
 benchmark requirements are complete for the documented production scope, or a
 real documented production benchmark-scope decision accepts proxy/non-device

@@ -18,6 +18,9 @@ REQUIRED_TOP_LEVEL_KEYS = {
     "packageScope",
     "sourceCommit",
     "productionFallbackStatus",
+    "externalCryptoApprovedForProduction",
+    "maintainerRiskAcceptedNotCryptoApproved",
+    "fallbackSelectableForExplicitRiskException",
     "gates",
 }
 ALLOWED_TOP_LEVEL_KEYS = REQUIRED_TOP_LEVEL_KEYS | {
@@ -40,6 +43,11 @@ RISK_ACCEPTANCE_KEYS = {
     "constraints",
     "nonClaims",
 }
+
+
+def require_bool(value: object, name: str) -> bool:
+    require(isinstance(value, bool), f"{name} must be a boolean")
+    return value
 
 
 def require(condition: bool, message: str) -> None:
@@ -161,8 +169,21 @@ def verify(status: object, root: Path = ROOT) -> None:
 
     production_status = status.get("productionFallbackStatus")
     require(
-        production_status in {"fail-closed", "risk-accepted", "approved"},
-        "productionFallbackStatus must be fail-closed, risk-accepted, or approved",
+        production_status in {"fail-closed", "approved"},
+        "productionFallbackStatus must be fail-closed or approved",
+    )
+
+    external_crypto_approved = require_bool(
+        status.get("externalCryptoApprovedForProduction"),
+        "externalCryptoApprovedForProduction",
+    )
+    maintainer_risk_accepted = require_bool(
+        status.get("maintainerRiskAcceptedNotCryptoApproved"),
+        "maintainerRiskAcceptedNotCryptoApproved",
+    )
+    explicit_risk_exception_selectable = require_bool(
+        status.get("fallbackSelectableForExplicitRiskException"),
+        "fallbackSelectableForExplicitRiskException",
     )
 
     gates = status.get("gates")
@@ -209,19 +230,51 @@ def verify(status: object, root: Path = ROOT) -> None:
     require(not missing, f"missing gate ids: {', '.join(sorted(missing))}")
 
     risk_acceptance = status.get("productionFallbackRiskAcceptance")
-    if production_status == "risk-accepted":
+    if maintainer_risk_accepted or explicit_risk_exception_selectable:
         require(
             risk_acceptance is not None,
-            "productionFallbackStatus risk-accepted requires productionFallbackRiskAcceptance",
+            "maintainer risk acceptance requires productionFallbackRiskAcceptance",
         )
         verify_risk_acceptance(risk_acceptance, root)
     elif risk_acceptance is not None:
         verify_risk_acceptance(risk_acceptance, root)
 
+    require(
+        not (external_crypto_approved and maintainer_risk_accepted),
+        "maintainerRiskAcceptedNotCryptoApproved cannot be true with externalCryptoApprovedForProduction",
+    )
+    require(
+        not (external_crypto_approved and explicit_risk_exception_selectable),
+        "fallbackSelectableForExplicitRiskException cannot be true with externalCryptoApprovedForProduction",
+    )
+    if explicit_risk_exception_selectable:
+        require(
+            maintainer_risk_accepted,
+            "fallbackSelectableForExplicitRiskException requires maintainerRiskAcceptedNotCryptoApproved",
+        )
+        require(
+            production_status == "fail-closed",
+            "explicit risk-exception fallback remains fail-closed, not production approved",
+        )
+
     if production_status == "approved":
         require(all_closed, "productionFallbackStatus approved requires all gates closed")
+        require(
+            external_crypto_approved,
+            "productionFallbackStatus approved requires externalCryptoApprovedForProduction",
+        )
+        require(
+            not maintainer_risk_accepted,
+            "productionFallbackStatus approved cannot rely on maintainer risk acceptance",
+        )
     elif all_closed:
         raise SystemExit("all gates closed but productionFallbackStatus is not approved")
+
+    if production_status == "fail-closed":
+        require(
+            not external_crypto_approved,
+            "fail-closed productionFallbackStatus cannot claim externalCryptoApprovedForProduction",
+        )
 
 
 def main() -> None:

@@ -39,11 +39,13 @@ Scope: `mlkem-kit` public package
   timing sanity evidence only and not formal constant-time proof.
 - The benchmark evidence matrix for this closure was accepted by
   `mlkem-kit maintainer` in `docs/mlkem-benchmark-scope-decision.md`.
-- Pure fallback audit status: maintainer risk-accepted for EMSI DM production
-  fallback use; not external-audit-approved.
+- Pure fallback audit status: production fallback approval remains fail-closed;
+  maintainer risk acceptance is recorded only as a separate explicit exception
+  path and is not external-audit-approved.
 - Provider policy: production fail-closed by default for language-native
   fallbacks unless the caller supplies explicit fallback allowance plus closed
-  audit gates or the EMSI DM risk-acceptance gate.
+  audit gates, or separately supplies the EMSI DM risk-exception flag plus the
+  risk-acceptance gate.
 
 ## Verification Evidence
 
@@ -55,7 +57,7 @@ Scope: `mlkem-kit` public package
 | Secret logging guardrail | `tools/check_secret_logging.py` | Passed on 2026-06-05 local time: `secret logging ok`. |
 | Side-channel source guardrail | `tools/check_side_channel_source.py` | Passed on 2026-06-05 local time: `side-channel source guardrails ok`. |
 | Entropy boundary | `tools/check_entropy_boundary.py` | Passed on 2026-06-05 local time: `entropy boundary ok`. |
-| Audit status JSON | `python3 -m json.tool readiness/mlkem-audit-status.json` | Passed on 2026-06-05 local time; JSON formatted successfully and records `productionFallbackStatus: "risk-accepted"`. |
+| Audit status JSON | `python3 -m json.tool readiness/mlkem-audit-status.json` | Passed on 2026-06-05 local time; JSON formatted successfully and records `productionFallbackStatus: "fail-closed"` with maintainer risk acceptance separated from external approval. |
 | Benchmark JSON formatting | `python3 -m json.tool benchmarks/release-device-results*.json` | Passed on 2026-06-05 local time for the schema, example, iOS, macOS, Android emulator, Windows GitHub Actions, and local .NET-on-macOS JSON files, including the 2026-06-05 iPhone 17 physical-device result and MacBook Pro physical-host result. |
 | Timing-sanity JSON formatting | `python3 -m json.tool benchmarks/side-channel-timing-sanity-results.schema.json` and `python3 -m json.tool benchmarks/side-channel-timing-sanity.macos-local-host.2026-06-05.json` | Passed on 2026-06-05 local time. Result JSON was copied from real `MLKEM_TIMING_SANITY_JSON_BEGIN` / `MLKEM_TIMING_SANITY_JSON_END` benchmark output. |
 | Swift | `swift test` from `platforms/swift` | Passed on 2026-06-05 local time: 19 tests, 0 failures. |

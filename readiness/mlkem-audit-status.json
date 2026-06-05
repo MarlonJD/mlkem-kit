@@ -1,13 +1,16 @@
 {
   "schemaVersion": 1,
   "packageScope": "ML-KEM-768 confidentiality fallback readiness",
-  "sourceCommit": "c62b1f3c0f83d869182d1555a0fb8e6900f7524e",
-  "productionFallbackStatus": "risk-accepted",
+  "sourceCommit": "0603a72e32995c4a76d67ea50c7dca39dcf67c97",
+  "productionFallbackStatus": "fail-closed",
+  "externalCryptoApprovedForProduction": false,
+  "maintainerRiskAcceptedNotCryptoApproved": true,
+  "fallbackSelectableForExplicitRiskException": true,
   "productionFallbackRiskAcceptance": {
     "status": "accepted",
     "decisionOwner": "mlkem-kit maintainer",
     "acceptedAt": "2026-06-05",
-    "scope": "EMSI DM production use of pure Swift, pure Kotlin, and managed C# ML-KEM-768 fallbacks when an official or native platform provider is unavailable.",
+    "scope": "Explicit EMSI DM risk-exception use of pure Swift, pure Kotlin, and managed C# ML-KEM-768 fallbacks when an official or native platform provider is unavailable. This is not production fallback approval.",
     "evidence": [
       "docs/mlkem-production-fallback-risk-acceptance.md",
       "docs/mlkem-emsi-dm-production-readiness.md",
@@ -15,8 +18,9 @@
       "docs/mlkem-internal-ai-review.md"
     ],
     "constraints": [
-      "Production fallback selection requires explicit application opt-in.",
-      "Production fallback selection must use the EMSI DM maintainer risk-acceptance gate.",
+      "Risk-exception fallback selection requires explicit application opt-in separate from external-crypto-approved production fallback policy.",
+      "Risk-exception fallback selection must use the EMSI DM maintainer risk-acceptance gate.",
+      "Production fallback approval remains rejected unless a real named external crypto reviewer approves the specific residual risks.",
       "Official or native platform providers remain preferred when complete and protocol-compatible."
     ],
     "nonClaims": [
@@ -74,7 +78,7 @@
         "docs/mlkem-emsi-dm-production-readiness.md"
       ],
       "blockers": [
-        "No independent external crypto review findings and acceptance decision are recorded. Internal AI review is recorded for handoff but is not external acceptance."
+        "Vera C. Ternell's 2026-06-05 external E2EE review rejected ML-KEM fallback production approval for EMSI. No later named external crypto reviewer acceptance is recorded. Internal AI review is recorded for handoff but is not external acceptance."
       ]
     }
   ]

@@ -99,7 +99,7 @@ public sealed class MLKemProviderPolicyTests
             NegativeVectorsPassed: true,
             SideChannelReviewPassed: true,
             ReleaseDeviceBenchmarksRecorded: false,
-            ExternalCryptoReviewAccepted: true);
+            ExternalCryptoApprovedForProduction: true);
 
         MLKemProviderSelection selection = MLKemProviderPolicy.SelectDotNetProvider(
             runtime,
@@ -163,10 +163,23 @@ public sealed class MLKemProviderPolicyTests
         Assert.Equal("csharp-managed-mlkem768", selection.Provider?.ProviderId);
         Assert.Equal("C#", selection.Provider?.ImplementationLanguage);
         Assert.True(selection.Provider!.FallbackAllowedInProduction);
+        Assert.False(selection.Provider.FallbackSelectedForExplicitRiskException);
+        Assert.True(selection.Provider.ExternalCryptoApprovedForProduction);
     }
 
     [Fact]
-    public void ProductionFallbackCanUseExplicitEmsiDmMaintainerRiskAcceptance()
+    public void MaintainerRiskAcceptanceIsNotExternalCryptoApproval()
+    {
+        MLKemProviderAuditGates gates = MLKemProviderAuditGates.RiskAcceptedForEmsiDmProductionFallback;
+
+        Assert.False(gates.ExternalCryptoApprovedForProduction);
+        Assert.True(gates.MaintainerRiskAcceptedNotCryptoApproved);
+        Assert.False(gates.FallbackProductionReady);
+        Assert.True(gates.FallbackSelectableForExplicitRiskException);
+    }
+
+    [Fact]
+    public void ProductionFallbackRiskExceptionRequiresSeparatePolicyFlag()
     {
         var runtime = new MLKemDotNetRuntimeCapabilities(
             BuiltInMLKemSupported: false,
@@ -176,14 +189,25 @@ public sealed class MLKemProviderPolicyTests
             ManagedFallbackAvailable: true,
             RuntimeDescription: ".NET runtime without built-in ML-KEM");
 
-        MLKemProviderSelection selection = MLKemProviderPolicy.SelectDotNetProvider(
+        MLKemProviderSelection approvedPathSelection = MLKemProviderPolicy.SelectDotNetProvider(
             runtime,
             MLKemProviderPolicy.Production(
                 allowsFallbackInProduction: true,
                 auditGates: MLKemProviderAuditGates.RiskAcceptedForEmsiDmProductionFallback));
 
+        Assert.Null(approvedPathSelection.Provider);
+        Assert.Equal(MLKemProviderFailureReason.FallbackAuditIncomplete, approvedPathSelection.FailureReason);
+
+        MLKemProviderSelection selection = MLKemProviderPolicy.SelectDotNetProvider(
+            runtime,
+            MLKemProviderPolicy.Production(
+                allowsExplicitRiskExceptionFallbackInProduction: true,
+                auditGates: MLKemProviderAuditGates.RiskAcceptedForEmsiDmProductionFallback));
+
         Assert.Equal("csharp-managed-mlkem768", selection.Provider?.ProviderId);
-        Assert.True(selection.Provider!.FallbackAllowedInProduction);
+        Assert.False(selection.Provider!.FallbackAllowedInProduction);
+        Assert.True(selection.Provider.FallbackSelectedForExplicitRiskException);
+        Assert.False(selection.Provider.ExternalCryptoApprovedForProduction);
     }
 
     [Fact]

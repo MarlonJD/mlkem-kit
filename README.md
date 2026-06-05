@@ -85,19 +85,24 @@ protocol-compatible:
 - .NET prefers official `System.Security.Cryptography` ML-KEM support when the
   runtime provider reports complete support.
 
-Pure Swift, pure Kotlin, and managed C# fallbacks are production-selectable for
-the owning application only through explicit maintainer risk acceptance. They
-are not selected silently.
+Pure Swift, pure Kotlin, and managed C# fallbacks are production-approved only
+after external crypto approval closes the audit gates. Maintainer risk
+acceptance is a separate explicit exception path, not crypto approval, and it is
+not selected silently.
 
 Required production fallback opt-in:
 
-- set the production policy to allow fallback selection; and
-- pass the documented platform risk-acceptance gate.
+- set the production policy to allow an externally approved fallback, or set the
+  separate explicit risk-exception flag; and
+- pass the matching documented external-approval or risk-acceptance gate.
 
 `readiness/mlkem-audit-status.json` records
-`productionFallbackStatus: "risk-accepted"` for fallback use. Reviewer gates
-remain open because this is maintainer risk acceptance, not external independent
-crypto-review acceptance.
+`productionFallbackStatus: "fail-closed"` for production fallback approval.
+Reviewer gates remain open because maintainer risk acceptance is not external
+independent crypto-review acceptance. The manifest records
+`maintainerRiskAcceptedNotCryptoApproved: true` and
+`fallbackSelectableForExplicitRiskException: true` for the separate explicit
+risk-exception path.
 
 ## Security Claims And Non-Claims
 
@@ -112,7 +117,7 @@ This project is intentionally precise about what it claims:
 
 What it does provide is reviewed source structure, shared vectors, regression
 guardrails, timing sanity evidence, benchmark records, and an explicit
-maintainer risk-acceptance path for production fallback use.
+maintainer risk-acceptance path for explicit fallback exception use.
 
 See:
 

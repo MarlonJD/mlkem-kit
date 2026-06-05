@@ -37,6 +37,8 @@ public struct MLKEMProviderMetadata: Equatable, Sendable {
     public let nativeLibraryDependency: String?
     public let licenseAndSupplyChainStatus: String
     public let fallbackAllowedInProduction: Bool
+    public let fallbackSelectedForExplicitRiskException: Bool
+    public let externalCryptoApprovedForProduction: Bool
 
     public static let appleCryptoKitMLKEM768 = MLKEMProviderMetadata(
         providerId: "apple-cryptokit-mlkem768",
@@ -54,7 +56,9 @@ public struct MLKEMProviderMetadata: Equatable, Sendable {
         usesCOrFFI: false,
         nativeLibraryDependency: nil,
         licenseAndSupplyChainStatus: "Apple platform SDK",
-        fallbackAllowedInProduction: false
+        fallbackAllowedInProduction: false,
+        fallbackSelectedForExplicitRiskException: false,
+        externalCryptoApprovedForProduction: false
     )
 
     public static let appleCryptoKitXWingMLKEM768X25519 = MLKEMProviderMetadata(
@@ -73,7 +77,9 @@ public struct MLKEMProviderMetadata: Equatable, Sendable {
         usesCOrFFI: false,
         nativeLibraryDependency: nil,
         licenseAndSupplyChainStatus: "Apple platform SDK",
-        fallbackAllowedInProduction: false
+        fallbackAllowedInProduction: false,
+        fallbackSelectedForExplicitRiskException: false,
+        externalCryptoApprovedForProduction: false
     )
 
     public static let appleSecureEnclaveMLKEM768 = MLKEMProviderMetadata(
@@ -92,10 +98,14 @@ public struct MLKEMProviderMetadata: Equatable, Sendable {
         usesCOrFFI: false,
         nativeLibraryDependency: nil,
         licenseAndSupplyChainStatus: "Apple platform SDK",
-        fallbackAllowedInProduction: false
+        fallbackAllowedInProduction: false,
+        fallbackSelectedForExplicitRiskException: false,
+        externalCryptoApprovedForProduction: false
     )
 
-    public static func pureSwiftMLKEM768(fallbackAllowedInProduction: Bool = false) -> MLKEMProviderMetadata {
+    public static func pureSwiftMLKEM768(fallbackAllowedInProduction: Bool = false,
+                                         fallbackSelectedForExplicitRiskException: Bool = false,
+                                         externalCryptoApprovedForProduction: Bool = false) -> MLKEMProviderMetadata {
         MLKEMProviderMetadata(
             providerId: "swift-pure-mlkem768",
             parameterSet: "ML-KEM-768",
@@ -112,7 +122,9 @@ public struct MLKEMProviderMetadata: Equatable, Sendable {
             usesCOrFFI: false,
             nativeLibraryDependency: nil,
             licenseAndSupplyChainStatus: "mlkem-kit source, no vendored native dependency",
-            fallbackAllowedInProduction: fallbackAllowedInProduction
+            fallbackAllowedInProduction: fallbackAllowedInProduction,
+            fallbackSelectedForExplicitRiskException: fallbackSelectedForExplicitRiskException,
+            externalCryptoApprovedForProduction: externalCryptoApprovedForProduction
         )
     }
 }
@@ -124,23 +136,23 @@ public struct MLKEMProviderAuditGates: Equatable, Sendable {
     public let negativeVectorsPassed: Bool
     public let sideChannelReviewPassed: Bool
     public let releaseDeviceBenchmarksRecorded: Bool
-    public let externalCryptoReviewAccepted: Bool
-    public let maintainerRiskAcceptedForFallbackProduction: Bool
+    public let externalCryptoApprovedForProduction: Bool
+    public let maintainerRiskAcceptedNotCryptoApproved: Bool
 
     public init(fips203CodeMapReviewed: Bool,
                 positiveVectorsPassed: Bool,
                 negativeVectorsPassed: Bool,
                 sideChannelReviewPassed: Bool,
                 releaseDeviceBenchmarksRecorded: Bool,
-                externalCryptoReviewAccepted: Bool,
-                maintainerRiskAcceptedForFallbackProduction: Bool = false) {
+                externalCryptoApprovedForProduction: Bool,
+                maintainerRiskAcceptedNotCryptoApproved: Bool = false) {
         self.fips203CodeMapReviewed = fips203CodeMapReviewed
         self.positiveVectorsPassed = positiveVectorsPassed
         self.negativeVectorsPassed = negativeVectorsPassed
         self.sideChannelReviewPassed = sideChannelReviewPassed
         self.releaseDeviceBenchmarksRecorded = releaseDeviceBenchmarksRecorded
-        self.externalCryptoReviewAccepted = externalCryptoReviewAccepted
-        self.maintainerRiskAcceptedForFallbackProduction = maintainerRiskAcceptedForFallbackProduction
+        self.externalCryptoApprovedForProduction = externalCryptoApprovedForProduction
+        self.maintainerRiskAcceptedNotCryptoApproved = maintainerRiskAcceptedNotCryptoApproved
     }
 
     public static let open = MLKEMProviderAuditGates(
@@ -149,8 +161,8 @@ public struct MLKEMProviderAuditGates: Equatable, Sendable {
         negativeVectorsPassed: false,
         sideChannelReviewPassed: false,
         releaseDeviceBenchmarksRecorded: false,
-        externalCryptoReviewAccepted: false,
-        maintainerRiskAcceptedForFallbackProduction: false
+        externalCryptoApprovedForProduction: false,
+        maintainerRiskAcceptedNotCryptoApproved: false
     )
 
     public static let closedForFallbackProduction = MLKEMProviderAuditGates(
@@ -159,8 +171,8 @@ public struct MLKEMProviderAuditGates: Equatable, Sendable {
         negativeVectorsPassed: true,
         sideChannelReviewPassed: true,
         releaseDeviceBenchmarksRecorded: true,
-        externalCryptoReviewAccepted: true,
-        maintainerRiskAcceptedForFallbackProduction: false
+        externalCryptoApprovedForProduction: true,
+        maintainerRiskAcceptedNotCryptoApproved: false
     )
 
     public static let riskAcceptedForEMSIDMProductionFallback = MLKEMProviderAuditGates(
@@ -169,8 +181,8 @@ public struct MLKEMProviderAuditGates: Equatable, Sendable {
         negativeVectorsPassed: true,
         sideChannelReviewPassed: false,
         releaseDeviceBenchmarksRecorded: true,
-        externalCryptoReviewAccepted: false,
-        maintainerRiskAcceptedForFallbackProduction: true
+        externalCryptoApprovedForProduction: false,
+        maintainerRiskAcceptedNotCryptoApproved: true
     )
 
     public var auditAcceptedForFallbackProduction: Bool {
@@ -179,12 +191,19 @@ public struct MLKEMProviderAuditGates: Equatable, Sendable {
             negativeVectorsPassed &&
             sideChannelReviewPassed &&
             releaseDeviceBenchmarksRecorded &&
-            externalCryptoReviewAccepted
+            externalCryptoApprovedForProduction
     }
 
     public var fallbackProductionReady: Bool {
-        auditAcceptedForFallbackProduction ||
-            maintainerRiskAcceptedForFallbackProduction
+        auditAcceptedForFallbackProduction
+    }
+
+    public var fallbackSelectableForExplicitRiskException: Bool {
+        maintainerRiskAcceptedNotCryptoApproved &&
+            positiveVectorsPassed &&
+            negativeVectorsPassed &&
+            releaseDeviceBenchmarksRecorded &&
+            !externalCryptoApprovedForProduction
     }
 }
 
@@ -230,29 +249,34 @@ public struct MLKEMProviderPolicy: Equatable, Sendable {
     public let protocolMode: MLKEMProtocolMode
     public let prefersHardwareIsolation: Bool
     public let allowsFallbackInProduction: Bool
+    public let allowsExplicitRiskExceptionFallbackInProduction: Bool
     public let auditGates: MLKEMProviderAuditGates
 
     public init(environment: Environment,
                 protocolMode: MLKEMProtocolMode,
                 prefersHardwareIsolation: Bool = false,
                 allowsFallbackInProduction: Bool = false,
+                allowsExplicitRiskExceptionFallbackInProduction: Bool = false,
                 auditGates: MLKEMProviderAuditGates = .open) {
         self.environment = environment
         self.protocolMode = protocolMode
         self.prefersHardwareIsolation = prefersHardwareIsolation
         self.allowsFallbackInProduction = allowsFallbackInProduction
+        self.allowsExplicitRiskExceptionFallbackInProduction = allowsExplicitRiskExceptionFallbackInProduction
         self.auditGates = auditGates
     }
 
     public static func production(protocolMode: MLKEMProtocolMode,
                                   prefersHardwareIsolation: Bool = false,
                                   allowsFallbackInProduction: Bool = false,
+                                  allowsExplicitRiskExceptionFallbackInProduction: Bool = false,
                                   auditGates: MLKEMProviderAuditGates = .open) -> MLKEMProviderPolicy {
         MLKEMProviderPolicy(
             environment: .production,
             protocolMode: protocolMode,
             prefersHardwareIsolation: prefersHardwareIsolation,
             allowsFallbackInProduction: allowsFallbackInProduction,
+            allowsExplicitRiskExceptionFallbackInProduction: allowsExplicitRiskExceptionFallbackInProduction,
             auditGates: auditGates
         )
     }
@@ -264,6 +288,7 @@ public struct MLKEMProviderPolicy: Equatable, Sendable {
             protocolMode: protocolMode,
             prefersHardwareIsolation: prefersHardwareIsolation,
             allowsFallbackInProduction: false,
+            allowsExplicitRiskExceptionFallbackInProduction: false,
             auditGates: .open
         )
     }
@@ -297,13 +322,23 @@ public struct MLKEMProviderPolicy: Equatable, Sendable {
         case .nonProduction:
             return .selected(.pureSwiftMLKEM768())
         case .production:
-            guard policy.allowsFallbackInProduction else {
+            guard policy.allowsFallbackInProduction || policy.allowsExplicitRiskExceptionFallbackInProduction else {
                 return .failClosed(.fallbackDisallowedInProduction)
             }
-            guard policy.auditGates.fallbackProductionReady else {
-                return .failClosed(.fallbackAuditIncomplete)
+            if policy.allowsFallbackInProduction, policy.auditGates.fallbackProductionReady {
+                return .selected(.pureSwiftMLKEM768(
+                    fallbackAllowedInProduction: true,
+                    externalCryptoApprovedForProduction: true
+                ))
             }
-            return .selected(.pureSwiftMLKEM768(fallbackAllowedInProduction: true))
+            if policy.allowsExplicitRiskExceptionFallbackInProduction,
+               policy.auditGates.fallbackSelectableForExplicitRiskException {
+                return .selected(.pureSwiftMLKEM768(
+                    fallbackSelectedForExplicitRiskException: true,
+                    externalCryptoApprovedForProduction: false
+                ))
+            }
+            return .failClosed(.fallbackAuditIncomplete)
         }
     }
 }

@@ -4,19 +4,20 @@ Date: 2026-06-05
 Scope: `packages/mlkem-kit` provider selection for EMSI DM E2EE
 Reviewed source baseline: `c62b1f3c0f83d869182d1555a0fb8e6900f7524e`
 Current package-local changes: provider policy and audit status updates for
-explicit maintainer risk-accepted fallback selection.
+explicit maintainer risk-exception fallback selection that is not crypto
+approval.
 
 ## Decision
 
 `mlkem-kit` is approved for EMSI DM production integration through official
-providers when available, and through pure Swift, pure Kotlin, or managed C#
-fallback providers when the EMSI DM maintainer risk-acceptance gate is supplied
-explicitly.
+providers when available. Pure Swift, pure Kotlin, or managed C# fallback
+providers remain production-approval rejected unless a later real named external
+crypto reviewer accepts the specific residual risks.
 
-This decision allows EMSI DM clients to wire the package into production release
-flows when provider selection uses production policy and either selects a
-complete official/native provider or explicitly opts into the documented
-language-native fallback risk acceptance.
+Maintainer risk acceptance is only a separate explicit risk-exception path. It
+does not set `fallbackProductionReady`, does not set
+`externalCryptoApprovedForProduction`, and does not convert the package into
+EMSI product rollout approval.
 
 ## Required Production Posture
 
@@ -27,9 +28,10 @@ language-native fallback risk acceptance.
   runtime provider reports complete key generation, encapsulation, and
   decapsulation support.
 - Prefer official/native providers when complete and protocol-compatible.
-- To use pure Swift, pure Kotlin, or managed C# fallback selection in EMSI DM
-  production releases, set `allowsFallbackInProduction` explicitly and supply
-  the platform risk-acceptance gate recorded in
+- To use pure Swift, pure Kotlin, or managed C# fallback selection under the
+  explicit risk-exception path, set
+  `allowsExplicitRiskExceptionFallbackInProduction` and supply the platform
+  risk-acceptance gate recorded in
   `docs/mlkem-production-fallback-risk-acceptance.md`.
 - Without explicit fallback opt-in, production selection must fail closed when
   no complete official/native provider is available.
@@ -39,8 +41,9 @@ language-native fallback risk acceptance.
 This is not FIPS validation, not formal constant-time certification, and not
 external independent crypto-review acceptance.
 `readiness/mlkem-audit-status.json` remains the source of truth for fallback
-audit gates and records `productionFallbackStatus: "risk-accepted"` for this
-decision.
+audit gates and records `productionFallbackStatus: "fail-closed"`,
+`maintainerRiskAcceptedNotCryptoApproved: true`, and
+`fallbackSelectableForExplicitRiskException: true` for this decision.
 
 ## Evidence
 

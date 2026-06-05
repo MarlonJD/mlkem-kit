@@ -23,6 +23,8 @@ data class MLKEMProviderMetadata(
     val nativeLibraryDependency: String?,
     val licenseAndSupplyChainStatus: String,
     val fallbackAllowedInProduction: Boolean,
+    val fallbackSelectedForExplicitRiskException: Boolean,
+    val externalCryptoApprovedForProduction: Boolean,
     val officialSupportEvidence: String,
 ) {
     companion object {
@@ -43,10 +45,16 @@ data class MLKEMProviderMetadata(
             nativeLibraryDependency = null,
             licenseAndSupplyChainStatus = "Android SDK official API",
             fallbackAllowedInProduction = false,
+            fallbackSelectedForExplicitRiskException = false,
+            externalCryptoApprovedForProduction = false,
             officialSupportEvidence = "No app-facing Android ML-KEM KEM operation API found in official docs on 2026-06-04.",
         )
 
-        fun pureKotlinMLKEM768(fallbackAllowedInProduction: Boolean = false): MLKEMProviderMetadata =
+        fun pureKotlinMLKEM768(
+            fallbackAllowedInProduction: Boolean = false,
+            fallbackSelectedForExplicitRiskException: Boolean = false,
+            externalCryptoApprovedForProduction: Boolean = false,
+        ): MLKEMProviderMetadata =
             MLKEMProviderMetadata(
                 providerId = "kotlin-pure-mlkem768",
                 parameterSet = "ML-KEM-768",
@@ -64,6 +72,8 @@ data class MLKEMProviderMetadata(
                 nativeLibraryDependency = null,
                 licenseAndSupplyChainStatus = "mlkem-kit source, no vendored native dependency",
                 fallbackAllowedInProduction = fallbackAllowedInProduction,
+                fallbackSelectedForExplicitRiskException = fallbackSelectedForExplicitRiskException,
+                externalCryptoApprovedForProduction = externalCryptoApprovedForProduction,
                 officialSupportEvidence = "Language-native fallback; not an Android platform KEM provider.",
             )
     }
@@ -75,8 +85,8 @@ data class MLKEMProviderAuditGates(
     val negativeVectorsPassed: Boolean,
     val sideChannelReviewPassed: Boolean,
     val releaseDeviceBenchmarksRecorded: Boolean,
-    val externalCryptoReviewAccepted: Boolean,
-    val maintainerRiskAcceptedForFallbackProduction: Boolean = false,
+    val externalCryptoApprovedForProduction: Boolean,
+    val maintainerRiskAcceptedNotCryptoApproved: Boolean = false,
 ) {
     val auditAcceptedForFallbackProduction: Boolean
         get() = fips203CodeMapReviewed &&
@@ -84,11 +94,17 @@ data class MLKEMProviderAuditGates(
             negativeVectorsPassed &&
             sideChannelReviewPassed &&
             releaseDeviceBenchmarksRecorded &&
-            externalCryptoReviewAccepted
+            externalCryptoApprovedForProduction
 
     val fallbackProductionReady: Boolean
-        get() = auditAcceptedForFallbackProduction ||
-            maintainerRiskAcceptedForFallbackProduction
+        get() = auditAcceptedForFallbackProduction
+
+    val fallbackSelectableForExplicitRiskException: Boolean
+        get() = maintainerRiskAcceptedNotCryptoApproved &&
+            positiveVectorsPassed &&
+            negativeVectorsPassed &&
+            releaseDeviceBenchmarksRecorded &&
+            !externalCryptoApprovedForProduction
 
     companion object {
         val OPEN = MLKEMProviderAuditGates(
@@ -97,8 +113,8 @@ data class MLKEMProviderAuditGates(
             negativeVectorsPassed = false,
             sideChannelReviewPassed = false,
             releaseDeviceBenchmarksRecorded = false,
-            externalCryptoReviewAccepted = false,
-            maintainerRiskAcceptedForFallbackProduction = false,
+            externalCryptoApprovedForProduction = false,
+            maintainerRiskAcceptedNotCryptoApproved = false,
         )
 
         val CLOSED_FOR_FALLBACK_PRODUCTION = MLKEMProviderAuditGates(
@@ -107,8 +123,8 @@ data class MLKEMProviderAuditGates(
             negativeVectorsPassed = true,
             sideChannelReviewPassed = true,
             releaseDeviceBenchmarksRecorded = true,
-            externalCryptoReviewAccepted = true,
-            maintainerRiskAcceptedForFallbackProduction = false,
+            externalCryptoApprovedForProduction = true,
+            maintainerRiskAcceptedNotCryptoApproved = false,
         )
 
         val RISK_ACCEPTED_FOR_EMSI_DM_PRODUCTION_FALLBACK = MLKEMProviderAuditGates(
@@ -117,8 +133,8 @@ data class MLKEMProviderAuditGates(
             negativeVectorsPassed = true,
             sideChannelReviewPassed = false,
             releaseDeviceBenchmarksRecorded = true,
-            externalCryptoReviewAccepted = false,
-            maintainerRiskAcceptedForFallbackProduction = true,
+            externalCryptoApprovedForProduction = false,
+            maintainerRiskAcceptedNotCryptoApproved = true,
         )
     }
 }
@@ -141,6 +157,7 @@ data class MLKEMAndroidRuntimeCapabilities(
 data class MLKEMProviderPolicy(
     val environment: Environment,
     val allowsFallbackInProduction: Boolean = false,
+    val allowsExplicitRiskExceptionFallbackInProduction: Boolean = false,
     val auditGates: MLKEMProviderAuditGates = MLKEMProviderAuditGates.OPEN,
 ) {
     enum class Environment {
@@ -151,11 +168,13 @@ data class MLKEMProviderPolicy(
     companion object {
         fun production(
             allowsFallbackInProduction: Boolean = false,
+            allowsExplicitRiskExceptionFallbackInProduction: Boolean = false,
             auditGates: MLKEMProviderAuditGates = MLKEMProviderAuditGates.OPEN,
         ): MLKEMProviderPolicy =
             MLKEMProviderPolicy(
                 environment = Environment.PRODUCTION,
                 allowsFallbackInProduction = allowsFallbackInProduction,
+                allowsExplicitRiskExceptionFallbackInProduction = allowsExplicitRiskExceptionFallbackInProduction,
                 auditGates = auditGates,
             )
 
@@ -183,17 +202,33 @@ data class MLKEMProviderPolicy(
                     MLKEMProviderSelection.selected(MLKEMProviderMetadata.pureKotlinMLKEM768())
 
                 Environment.PRODUCTION -> {
-                    if (!policy.allowsFallbackInProduction) {
+                    if (!policy.allowsFallbackInProduction &&
+                        !policy.allowsExplicitRiskExceptionFallbackInProduction
+                    ) {
                         MLKEMProviderSelection.failClosed(
                             MLKEMProviderFailureReason.FALLBACK_DISALLOWED_IN_PRODUCTION,
                         )
-                    } else if (!policy.auditGates.fallbackProductionReady) {
-                        MLKEMProviderSelection.failClosed(
-                            MLKEMProviderFailureReason.FALLBACK_AUDIT_INCOMPLETE,
+                    } else if (policy.allowsFallbackInProduction &&
+                        policy.auditGates.fallbackProductionReady
+                    ) {
+                        MLKEMProviderSelection.selected(
+                            MLKEMProviderMetadata.pureKotlinMLKEM768(
+                                fallbackAllowedInProduction = true,
+                                externalCryptoApprovedForProduction = true,
+                            ),
+                        )
+                    } else if (policy.allowsExplicitRiskExceptionFallbackInProduction &&
+                        policy.auditGates.fallbackSelectableForExplicitRiskException
+                    ) {
+                        MLKEMProviderSelection.selected(
+                            MLKEMProviderMetadata.pureKotlinMLKEM768(
+                                fallbackSelectedForExplicitRiskException = true,
+                                externalCryptoApprovedForProduction = false,
+                            ),
                         )
                     } else {
-                        MLKEMProviderSelection.selected(
-                            MLKEMProviderMetadata.pureKotlinMLKEM768(fallbackAllowedInProduction = true),
+                        MLKEMProviderSelection.failClosed(
+                            MLKEMProviderFailureReason.FALLBACK_AUDIT_INCOMPLETE,
                         )
                     }
                 }

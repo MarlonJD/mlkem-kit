@@ -3,12 +3,24 @@
   "title": "mlkem-kit audit gate status",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "packageScope", "sourceCommit", "productionFallbackStatus", "gates"],
+  "required": [
+    "schemaVersion",
+    "packageScope",
+    "sourceCommit",
+    "productionFallbackStatus",
+    "externalCryptoApprovedForProduction",
+    "maintainerRiskAcceptedNotCryptoApproved",
+    "fallbackSelectableForExplicitRiskException",
+    "gates"
+  ],
   "properties": {
     "schemaVersion": { "const": 1 },
     "packageScope": { "const": "ML-KEM-768 confidentiality fallback readiness" },
     "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
-    "productionFallbackStatus": { "enum": ["fail-closed", "risk-accepted", "approved"] },
+    "productionFallbackStatus": { "enum": ["fail-closed", "approved"] },
+    "externalCryptoApprovedForProduction": { "type": "boolean" },
+    "maintainerRiskAcceptedNotCryptoApproved": { "type": "boolean" },
+    "fallbackSelectableForExplicitRiskException": { "type": "boolean" },
     "productionFallbackRiskAcceptance": {
       "type": "object",
       "additionalProperties": false,

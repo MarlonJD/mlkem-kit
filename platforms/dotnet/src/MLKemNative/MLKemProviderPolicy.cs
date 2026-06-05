@@ -25,6 +25,8 @@ public sealed record MLKemProviderMetadata(
     string? NativeLibraryDependency,
     string LicenseAndSupplyChainStatus,
     bool FallbackAllowedInProduction,
+    bool FallbackSelectedForExplicitRiskException,
+    bool ExternalCryptoApprovedForProduction,
     string OfficialSupportEvidence)
 {
     public static MLKemProviderMetadata DotNetBuiltInMLKem768 { get; } = new(
@@ -45,9 +47,14 @@ public sealed record MLKemProviderMetadata(
         NativeLibraryDependency: null,
         LicenseAndSupplyChainStatus: ".NET runtime official API",
         FallbackAllowedInProduction: false,
+        FallbackSelectedForExplicitRiskException: false,
+        ExternalCryptoApprovedForProduction: false,
         OfficialSupportEvidence: ".NET 10 exposes ML-KEM APIs where runtime provider support reports IsSupported.");
 
-    public static MLKemProviderMetadata ManagedCSharpMLKem768(bool fallbackAllowedInProduction = false) => new(
+    public static MLKemProviderMetadata ManagedCSharpMLKem768(
+        bool fallbackAllowedInProduction = false,
+        bool fallbackSelectedForExplicitRiskException = false,
+        bool externalCryptoApprovedForProduction = false) => new(
         ProviderId: "csharp-managed-mlkem768",
         ParameterSet: "ML-KEM-768",
         IsPlatformNative: false,
@@ -65,6 +72,8 @@ public sealed record MLKemProviderMetadata(
         NativeLibraryDependency: null,
         LicenseAndSupplyChainStatus: "mlkem-kit source, no vendored native dependency",
         FallbackAllowedInProduction: fallbackAllowedInProduction,
+        FallbackSelectedForExplicitRiskException: fallbackSelectedForExplicitRiskException,
+        ExternalCryptoApprovedForProduction: externalCryptoApprovedForProduction,
         OfficialSupportEvidence: "Managed fallback; not a platform-native .NET provider.");
 }
 
@@ -74,9 +83,9 @@ public sealed record MLKemProviderAuditGates(
     bool NegativeVectorsPassed,
     bool SideChannelReviewPassed,
     bool ReleaseDeviceBenchmarksRecorded,
-    bool ExternalCryptoReviewAccepted)
+    bool ExternalCryptoApprovedForProduction)
 {
-    public bool MaintainerRiskAcceptedForFallbackProduction { get; init; }
+    public bool MaintainerRiskAcceptedNotCryptoApproved { get; init; }
 
     public static MLKemProviderAuditGates Open { get; } = new(
         Fips203CodeMapReviewed: false,
@@ -84,7 +93,7 @@ public sealed record MLKemProviderAuditGates(
         NegativeVectorsPassed: false,
         SideChannelReviewPassed: false,
         ReleaseDeviceBenchmarksRecorded: false,
-        ExternalCryptoReviewAccepted: false);
+        ExternalCryptoApprovedForProduction: false);
 
     public static MLKemProviderAuditGates ClosedForFallbackProduction { get; } = new(
         Fips203CodeMapReviewed: true,
@@ -92,7 +101,7 @@ public sealed record MLKemProviderAuditGates(
         NegativeVectorsPassed: true,
         SideChannelReviewPassed: true,
         ReleaseDeviceBenchmarksRecorded: true,
-        ExternalCryptoReviewAccepted: true);
+        ExternalCryptoApprovedForProduction: true);
 
     public static MLKemProviderAuditGates RiskAcceptedForEmsiDmProductionFallback { get; } =
         Open with
@@ -100,7 +109,7 @@ public sealed record MLKemProviderAuditGates(
             PositiveVectorsPassed = true,
             NegativeVectorsPassed = true,
             ReleaseDeviceBenchmarksRecorded = true,
-            MaintainerRiskAcceptedForFallbackProduction = true,
+            MaintainerRiskAcceptedNotCryptoApproved = true,
         };
 
     public bool AuditAcceptedForFallbackProduction =>
@@ -109,11 +118,17 @@ public sealed record MLKemProviderAuditGates(
         NegativeVectorsPassed &&
         SideChannelReviewPassed &&
         ReleaseDeviceBenchmarksRecorded &&
-        ExternalCryptoReviewAccepted;
+        ExternalCryptoApprovedForProduction;
 
     public bool FallbackProductionReady =>
-        AuditAcceptedForFallbackProduction ||
-        MaintainerRiskAcceptedForFallbackProduction;
+        AuditAcceptedForFallbackProduction;
+
+    public bool FallbackSelectableForExplicitRiskException =>
+        MaintainerRiskAcceptedNotCryptoApproved &&
+        PositiveVectorsPassed &&
+        NegativeVectorsPassed &&
+        ReleaseDeviceBenchmarksRecorded &&
+        !ExternalCryptoApprovedForProduction;
 }
 
 public sealed record MLKemDotNetRuntimeCapabilities(
@@ -134,6 +149,7 @@ public sealed record MLKemDotNetRuntimeCapabilities(
 public sealed record MLKemProviderPolicy(
     MLKemProviderPolicy.ProviderEnvironment Environment,
     bool AllowsFallbackInProduction,
+    bool AllowsExplicitRiskExceptionFallbackInProduction,
     MLKemProviderAuditGates AuditGates)
 {
     public enum ProviderEnvironment
@@ -144,16 +160,19 @@ public sealed record MLKemProviderPolicy(
 
     public static MLKemProviderPolicy Production(
         bool allowsFallbackInProduction = false,
+        bool allowsExplicitRiskExceptionFallbackInProduction = false,
         MLKemProviderAuditGates? auditGates = null) =>
         new(
             Environment: ProviderEnvironment.Production,
             AllowsFallbackInProduction: allowsFallbackInProduction,
+            AllowsExplicitRiskExceptionFallbackInProduction: allowsExplicitRiskExceptionFallbackInProduction,
             AuditGates: auditGates ?? MLKemProviderAuditGates.Open);
 
     public static MLKemProviderPolicy NonProduction() =>
         new(
             Environment: ProviderEnvironment.NonProduction,
             AllowsFallbackInProduction: false,
+            AllowsExplicitRiskExceptionFallbackInProduction: false,
             AuditGates: MLKemProviderAuditGates.Open);
 
     public static MLKemProviderSelection SelectDotNetProvider(
@@ -178,19 +197,35 @@ public sealed record MLKemProviderPolicy(
             return MLKemProviderSelection.FailClosed(MLKemProviderFailureReason.ProviderUnavailable);
         }
 
-        return policy.Environment switch
+        if (policy.Environment == ProviderEnvironment.NonProduction)
         {
-            ProviderEnvironment.NonProduction =>
-                MLKemProviderSelection.Selected(MLKemProviderMetadata.ManagedCSharpMLKem768()),
-            ProviderEnvironment.Production when !policy.AllowsFallbackInProduction =>
-                MLKemProviderSelection.FailClosed(MLKemProviderFailureReason.FallbackDisallowedInProduction),
-            ProviderEnvironment.Production when !policy.AuditGates.FallbackProductionReady =>
-                MLKemProviderSelection.FailClosed(MLKemProviderFailureReason.FallbackAuditIncomplete),
-            ProviderEnvironment.Production =>
-                MLKemProviderSelection.Selected(
-                    MLKemProviderMetadata.ManagedCSharpMLKem768(fallbackAllowedInProduction: true)),
-            _ => MLKemProviderSelection.FailClosed(MLKemProviderFailureReason.ProviderUnavailable),
-        };
+            return MLKemProviderSelection.Selected(MLKemProviderMetadata.ManagedCSharpMLKem768());
+        }
+
+        if (!policy.AllowsFallbackInProduction &&
+            !policy.AllowsExplicitRiskExceptionFallbackInProduction)
+        {
+            return MLKemProviderSelection.FailClosed(MLKemProviderFailureReason.FallbackDisallowedInProduction);
+        }
+
+        if (policy.AllowsFallbackInProduction && policy.AuditGates.FallbackProductionReady)
+        {
+            return MLKemProviderSelection.Selected(
+                MLKemProviderMetadata.ManagedCSharpMLKem768(
+                    fallbackAllowedInProduction: true,
+                    externalCryptoApprovedForProduction: true));
+        }
+
+        if (policy.AllowsExplicitRiskExceptionFallbackInProduction &&
+            policy.AuditGates.FallbackSelectableForExplicitRiskException)
+        {
+            return MLKemProviderSelection.Selected(
+                MLKemProviderMetadata.ManagedCSharpMLKem768(
+                    fallbackSelectedForExplicitRiskException: true,
+                    externalCryptoApprovedForProduction: false));
+        }
+
+        return MLKemProviderSelection.FailClosed(MLKemProviderFailureReason.FallbackAuditIncomplete);
     }
 }
 

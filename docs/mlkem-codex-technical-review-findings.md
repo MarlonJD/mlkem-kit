@@ -52,8 +52,9 @@ Recommended gate handling:
 - Keep `external-crypto-review` open until an independent external reviewer
   records findings and an acceptance decision.
 - Keep reviewer gates open until real reviewer evidence exists. EMSI DM
-  production fallback use is maintainer risk-accepted separately through
-  `docs/mlkem-production-fallback-risk-acceptance.md`.
+  fallback exception use is maintainer risk-accepted separately through
+  `docs/mlkem-production-fallback-risk-acceptance.md`; it is not production
+  fallback approval.
 
 ## Findings
 
@@ -186,10 +187,11 @@ Recommended gate handling:
 - Codex technical disposition: accepted guardrail
 - Severity: informational
 - Evidence: Swift, Kotlin, and C# provider policies require explicit production
-  fallback allowance and either closed audit gates or the EMSI DM maintainer
-  risk-acceptance gate before selecting language-native fallbacks for
-  production. `readiness/mlkem-audit-status.json` records
-  `productionFallbackStatus: "risk-accepted"`.
+  fallback allowance plus closed audit gates for externally approved fallback,
+  or the separate EMSI DM risk-exception flag plus maintainer risk-acceptance
+  gate before selecting language-native fallbacks without crypto approval.
+  `readiness/mlkem-audit-status.json` records
+  `productionFallbackStatus: "fail-closed"`.
 - Residual risk: documentation or JSON updates could accidentally overstate
   readiness unless verification continues to require real reviewer evidence.
 - Gate impact: preserve explicit opt-in and keep reviewer gates open.
@@ -197,8 +199,8 @@ Recommended gate handling:
 ## Hardening Options To Reduce Residual Risk
 
 - Prefer a vetted platform/native provider when available; use language-native
-  implementations in production only through closed audit gates or documented
-  maintainer risk acceptance.
+  implementations in production only through closed audit gates or the separate
+  documented maintainer risk-exception path.
 - Keep per-runtime timing-analysis evidence diagnostic for release builds, while preserving
   the explicit non-claim that this is not formal constant-time proof.
 - Gate or de-emphasize exportable private-key representations in production

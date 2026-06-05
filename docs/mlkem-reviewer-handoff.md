@@ -10,13 +10,14 @@ acceptance.
 ## Current Decision
 
 - `readiness/mlkem-audit-status.json` records
-  `productionFallbackStatus: "risk-accepted"`.
+  `productionFallbackStatus: "fail-closed"`.
 - All reviewer gates remain `open`.
 - No reviewer is assigned and no reviewer sign-off is recorded.
-- EMSI DM production fallback is permitted only through explicit maintainer
-  risk acceptance in `docs/mlkem-production-fallback-risk-acceptance.md`.
-  External-audit-approved production fallback remains blocked unless the audit
-  status is updated with real named reviewer evidence.
+- EMSI DM fallback without external crypto approval is selectable only through
+  the separate explicit risk-exception path in
+  `docs/mlkem-production-fallback-risk-acceptance.md`. It is labelled not
+  crypto-approved. External-audit-approved production fallback remains blocked
+  unless the audit status is updated with real named reviewer evidence.
 - Non-device automation was refreshed on 2026-06-05 local time and passed, but
   automation does not close reviewer gates.
 - The reviewed source baseline is
@@ -165,9 +166,9 @@ acceptance.
   independent reviewer sign-off and do not close reviewer gates.
 - Internal AI review exists for handoff, but it is not external independent
   reviewer sign-off and does not close reviewer gates.
-- EMSI DM production fallback use is maintainer risk-accepted, but it remains
-  outside external independent reviewer acceptance and must use explicit
-  production fallback opt-in.
+- EMSI DM fallback exception use is maintainer risk-accepted, but it remains
+  outside external independent reviewer acceptance and must use the separate
+  explicit risk-exception opt-in.
 - Benchmark evidence is accepted for this closure by
   `docs/mlkem-benchmark-scope-decision.md`, but that decision does not close
   reviewer gates or approve production fallback.
@@ -178,5 +179,6 @@ acceptance.
   via Windows GitHub Actions; physical Windows release-device evidence remains
   out of scope for this closure.
 
-Production fallback is maintainer risk-accepted for EMSI DM explicit opt-in.
-Reviewer-controlled audit gates remain open.
+Production fallback approval remains fail-closed. The EMSI DM maintainer
+risk-accepted path is only an explicit exception, and reviewer-controlled audit
+gates remain open.

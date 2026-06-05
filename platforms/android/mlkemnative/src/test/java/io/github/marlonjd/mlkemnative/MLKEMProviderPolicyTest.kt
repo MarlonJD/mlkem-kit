@@ -126,7 +126,7 @@ class MLKEMProviderPolicyTest {
             negativeVectorsPassed = true,
             sideChannelReviewPassed = true,
             releaseDeviceBenchmarksRecorded = false,
-            externalCryptoReviewAccepted = true,
+            externalCryptoApprovedForProduction = true,
         )
 
         val selection = MLKEMProviderPolicy.selectAndroidProvider(
@@ -194,10 +194,22 @@ class MLKEMProviderPolicyTest {
         assertEquals("kotlin-pure-mlkem768", selection.provider?.providerId)
         assertEquals("Kotlin", selection.provider?.implementationLanguage)
         assertTrue(selection.provider!!.fallbackAllowedInProduction)
+        assertFalse(selection.provider!!.fallbackSelectedForExplicitRiskException)
+        assertTrue(selection.provider!!.externalCryptoApprovedForProduction)
     }
 
     @Test
-    fun productionFallbackCanUseExplicitEmsiDmMaintainerRiskAcceptance() {
+    fun maintainerRiskAcceptanceIsNotExternalCryptoApproval() {
+        val gates = MLKEMProviderAuditGates.RISK_ACCEPTED_FOR_EMSI_DM_PRODUCTION_FALLBACK
+
+        assertFalse(gates.externalCryptoApprovedForProduction)
+        assertTrue(gates.maintainerRiskAcceptedNotCryptoApproved)
+        assertFalse(gates.fallbackProductionReady)
+        assertTrue(gates.fallbackSelectableForExplicitRiskException)
+    }
+
+    @Test
+    fun productionFallbackRiskExceptionRequiresSeparatePolicyFlag() {
         val runtime = MLKEMAndroidRuntimeCapabilities(
             officialAppFacingMLKEMAvailable = false,
             officialProviderSupportsKeyGeneration = false,
@@ -207,7 +219,7 @@ class MLKEMProviderPolicyTest {
             pureKotlinFallbackAvailable = true,
         )
 
-        val selection = MLKEMProviderPolicy.selectAndroidProvider(
+        val approvedPathSelection = MLKEMProviderPolicy.selectAndroidProvider(
             runtime = runtime,
             policy = MLKEMProviderPolicy.production(
                 allowsFallbackInProduction = true,
@@ -215,8 +227,21 @@ class MLKEMProviderPolicyTest {
             ),
         )
 
+        assertNull(approvedPathSelection.provider)
+        assertEquals(MLKEMProviderFailureReason.FALLBACK_AUDIT_INCOMPLETE, approvedPathSelection.failureReason)
+
+        val selection = MLKEMProviderPolicy.selectAndroidProvider(
+            runtime = runtime,
+            policy = MLKEMProviderPolicy.production(
+                allowsExplicitRiskExceptionFallbackInProduction = true,
+                auditGates = MLKEMProviderAuditGates.RISK_ACCEPTED_FOR_EMSI_DM_PRODUCTION_FALLBACK,
+            ),
+        )
+
         assertEquals("kotlin-pure-mlkem768", selection.provider?.providerId)
-        assertTrue(selection.provider!!.fallbackAllowedInProduction)
+        assertFalse(selection.provider!!.fallbackAllowedInProduction)
+        assertTrue(selection.provider!!.fallbackSelectedForExplicitRiskException)
+        assertFalse(selection.provider!!.externalCryptoApprovedForProduction)
     }
 
     @Test
